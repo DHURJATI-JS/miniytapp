@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" class="flex-grow-1">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static' , filename='css/mdb.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static' , filename='css/data.css')}}">
+    <link rel="shortcut icon" href="{{url_for('static' , filename='img/main.svg')}}" type="image/x-icon">
+<link rel="stylesheet" href="{{ url_for('static', filename='font/css/all.min.css') }}">
+<script src="{{ url_for('static', filename='js/socket.io.js') }}" nonce="{{ csp_nonce() }}"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{g.appname}} {% block title %}{% endblock title %}</title>
+</head>
+<body class="bg-light  min-vh-100">
+
+  
+    <div class="" >
+   <div class="container-fluid d-flex justify-content-center pt-3" style="position: sticky; top: 0; z-index: 1030;">
+  <nav class="navbar navbar-expand-lg floating-studio-nav acoustic-nav shadow-lg px-2">
+    <div class="container-fluid d-flex align-items-center">
+      
+      <a class="navbar-brand me-lg-4 me-auto brand-glow" href="/">
+        <img src="{{ url_for('static',filename='img/main.svg') }}" height="26" />
+      </a>
+
+      <button data-mdb-collapse-init class="navbar-toggler border-0 order-last ms-2" type="button" data-mdb-target="#navbarSupportedContent">
+        <i class="fas fa-bars text-dark"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mt-2 mt-lg-0">
+          <li class="nav-item">
+            <a data-mdb-ripple-init class="nav-link studio-link {% if request.endpoint == 'index' %}active-studio{% endif %}" href="/">
+              <i class="fas fa-home me-1"></i> <span>Home</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a data-mdb-ripple-init class="nav-link studio-link {% if request.endpoint == 'viewcommunity' %}active-studio{% endif %}" href="{{url_for('viewcommunity')}}">
+              <i class="fas fa-users me-1"></i> <span>Community</span>
+            </a>
+          </li> 
+          <li class="nav-item">
+            <a data-mdb-ripple-init class="nav-link studio-link {% if request.endpoint == 'declaration' %}active-studio{% endif %}" href="{{url_for('declaration')}}">
+              <i class="fas fa-book me-1"></i> <span>Declarations</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <button data-mdb-ripple-init class="nav-link studio-link border-0 bg-transparent w-100 text-start" data-mdb-modal-init data-mdb-target="#advancedSearchModal">
+              <i class="fas fa-sliders-h me-1"></i> <span>Video Search</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">  
+        <button type="button" class="btn shadow-0 me-2 btn-rounded btn-history-acoustic" data-mdb-modal-init data-mdb-toggle="modal" data-mdb-target="#clearHistoryModalvid">
+          Clear History
+        </button>
+
+        {% if session.get('login') %}
+          <a type="button" class="btn btn-outline-danger btn-rounded fw-bold btn-admin-acoustic" href="{{url_for('adminbp.adminlogin')}}" target="_blank">Admin <i class="fas fa-external-link-alt ms-1"></i></a>
+        {% endif %}
+
+        {% if session.get('login') and g.user %}
+          <div class="dropdown">
+            <button data-mdb-ripple-init class="btn btn-link icon-btn p-2 rounded-circle btn-notif-acoustic" data-mdb-modal-init data-mdb-target="#notification" 
+                    {% if g.user and g.user.nread!=True %}onclick="nread()"{% endif %}>
+              <i class="fas fa-bell"></i>
+              {% if g.user and not g.user.nread==True %}<span id="nread" class="notification-dot heartbeat-pulse"></span>{% endif %}
+            </button>
+          </div>
+
+          <div class="dropdown">
+            <button data-mdb-ripple-init class="btn btn-link p-0 avatar-wrapper rounded-circle avatar-acoustic" id="navbarDropdownMenuAvatar" data-mdb-dropdown-init aria-expanded="false">
+              <img src="{{ session['photo'] }}" class="rounded-circle border" height="32" width="32" />
+            </button>
+            <ul class="dropdown-menu studio-dropdown dropdown-menu-end border-0 shadow-lg mt-3 glass-dropdown">
+              <li class="px-3 py-2 small fw-bold text-muted border-bottom text-truncate" style="max-width: 200px;">{{ g.user.name if g.user else ''}}</li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('viewprofile',userid=session.get('user_id'))}}"><i class="fas fa-user-circle me-2"></i>Your Profile</a></li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('channelbp.createchannel')}}"><i class="fas fa-plus me-2"></i> Create channel</a></li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('accsettings.settings')}}"><i class="fas fa-cog me-2"></i>Settings</a></li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('playlistbp.viewlikedvideos')}}"><i class="fas fa-thumbs-up me-2"></i>Liked videos</a></li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('playlistbp.viewplaylists')}}"><i class="fas fa-film me-2"></i> View playlists</a></li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('playlistbp.viewplaylists')}}?saveplaylist"><i class="fas fa-plus me-2"></i> Create playlists</a></li>
+              <li><a data-mdb-ripple-init class="dropdown-item py-2" href="{{url_for('reportbp.viewreports')}}"><i class="fas fa-flag me-2"></i> View reports</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form action="{{url_for('authbp.logout')}}" method="post" class="m-0">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button data-mdb-ripple-init type="submit" class="dropdown-item text-danger py-2 w-100 text-start"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        {% else %} 
+           <a data-mdb-ripple-init href="{{url_for('authbp.login')}}" class="btn btn-light btn-rounded shadow-0 fw-bold text-capitalize py-2">Login</a>
+           <a data-mdb-ripple-init href="{{url_for('authbp.register')}}" class="btn btn-dark btn-rounded shadow-0 fw-bold text-capitalize py-2">Signup</a>      
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+</div>   
+<style>
+  /* --- Acoustic Navbar Base --- */
+.floating-studio-nav {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+    border: 1px solid rgba(18, 102, 241, 0.15);
+    border-radius: 50px !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* --- Links & Hover Effects --- */
+.studio-link {
+    font-weight: 600 !important;
+    color: #475569 !important;
+    border-radius: 30px;
+    padding: 8px 18px !important;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.studio-link:hover {
+    background: rgba(18, 102, 241, 0.1) !important;
+    color: #1266f1 !important; /* Force vivid blue on hover */
+    transform: translateY(-1px);
+}
+
+.studio-link:hover i {
+    color: #1266f1 !important; /* Ensure icon also turns blue */
+}
+
+.active-studio {
+    background: #1266f1 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(18, 102, 241, 0.3);
+}
+
+/* --- Dropdown Styling (Fixed Width Logic) --- */
+.studio-dropdown {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 20px !important;
+    border: 1px solid rgba(18, 102, 241, 0.15) !important;
+    box-shadow: 0 15px 35px rgba(18, 102, 241, 0.15) !important;
+    padding: 10px !important;
+    /* Prevent width jumping */
+    width: 220px !important; 
+    min-width: 220px !important;
+    max-width: 220px !important;
+    overflow-x: hidden !important; 
+    box-sizing: border-box !important;
+}
+
+.dropdown-item {
+    color: #334155 !important;
+    font-weight: 500;
+    border-radius: 12px !important;
+    padding: 10px 15px !important;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* Improved Hover: Clear visibility & Fixed Layout */
+.dropdown-item:hover {
+    background: rgba(18, 102, 241, 0.1) !important;
+    color: #1266f1 !important; /* Text visibility fix */
+    /* Subtle slide that doesn't break container width */
+    transform: translateX(4px); 
+}
+
+.dropdown-item:hover i {
+    color: #1266f1 !important; /* Icon visibility fix */
+    transform: scale(1.1);
+}
+
+/* --- Specialized Components --- */
+.notification-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    height: 10px;
+    width: 10px;
+    background-color: #ff4444; 
+    border-radius: 50%;
+    border: 2px solid white; 
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+}
+
+.btn-history-acoustic {
+    background: rgba(249, 49, 84, 0.1) !important;
+    color: #f93154 !important;
+    font-weight: 700 !important;
+    border-radius: 50px !important;
+    transition: 0.3s ease;
+}
+
+.btn-history-acoustic:hover {
+    background: #f93154 !important;
+    color: #fff !important;
+}
+
+.dropdown-divider {
+    border-top: 1px solid rgba(18, 102, 241, 0.08);
+    margin: 8px 5px;
+}
+</style>
+    <div class="modal fade" id="clearHistoryModalvid" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content studio-modal-content">
+      
+      <div class="modal-header border-0 pb-0">
+        <h5 class="studio-title">Clear watch history?</h5>
+      </div>
+
+      <div class="modal-body pt-2 pb-0">
+        <p class="studio-text mb-2 fw-bold text-muted">{% if session.get('login') %}
+          Your watch history will be cleared from all apps on all devices.
+This only includes videos you've watched while signed in. Note: statistical data is not deleted in this process
+{% else %}
+
+Your activity will be cleared from this device.</p>
+        {% endif %}
+        
+
+      <div class="modal-footer border-0">
+        <button type="button" class="btn shadow-0 btn-primary btn-rounded" data-mdb-dismiss="modal">Cancel</button>
+        <form action="{{url_for('videobp.delviewhistory')}}" method="post">
+          <input type="hidden" name="useriddel" value="{{session.get('user_id') or session.get('temptoken')}}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <button type="submit" class="btn shadow-0 btn-danger btn-rounded" id="confirmClearBtn">Clear History</button></form>
+      </div>
+      
+    </div>
+  </div>
+</div>
+</div>
+<style  nonce="{{ csp_nonce() }}">
+  /* Modern Studio Container */
+.studio-modal-content {
+  border-radius: 28px !important; /* Modern rounded look */
+  border: none !important;
+  background: #f8faff; /* Very light blue-white tint */
+  padding: 12px;
+  box-shadow: 0 15px 50px rgba(6, 95, 212, 0.15) !important; /* Soft blue shadow */
+}
+
+.studio-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #065fd4; /* Brand blue title */
+  letter-spacing: -0.3px;
+}
+
+.studio-text {
+  font-size: 15px;
+  color: #1e293b; /* Darker slate for readability */
+  line-height: 1.6;
+}
+
+
+
+
+.studio-switch-container {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.studio-switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.studio-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 34px;
+}
+
+.studio-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+input:checked + .studio-switch-slider {
+  background-color: #065fd4;
+}
+
+input:checked + .studio-switch-slider:before {
+  transform: translateX(18px);
+}
+</style>
+<div class="modal fade" id="advancedSearchModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content studio-search-glass border-0 shadow-lg">
+      
+      <form action="{{ url_for('index') }}" id="paginationForm" method="POST" id="advSearchForm">
+       <input type="hidden" id="pageInput" name="page" value="{{ page }}">
+        <div class="modal-header border-0 pb-0 pt-4 px-4">
+          <h5 class="modal-title fw-bold d-flex align-items-center">
+            <div class="studio-search-icon-box me-3">
+              <i class="fas fa-sliders-h text-primary"></i>
+            </div>
+            Advanced Filter
+          </h5>
+          <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <div class="d-flex align-items-center justify-content-between p-3 mb-4 rounded-4" style="background: rgba(6, 95, 212, 0.05); border: 1px solid rgba(6, 95, 212, 0.1);">
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle bg-white d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 32px; height: 32px;">
+                <i class="fas fa-history text-primary" style="font-size: 0.9rem;"></i>
+              </div>
+              <div>
+                <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">Watch History</h6>
+  <small class="fw-bold text-small" style="font-size: 0.7rem;">Only works if data collection is allowed or history is present.</small>
+              </div>
+             
+            </div>
+            <label class="studio-switch-container">
+              <input type="checkbox" name="watchedvidesonly" class="studio-lockable" {% if g.dataobj and g.dataobj.onlywatchedvideos %}checked{% endif %}>
+              <span class="studio-switch-slider"></span>
+            </label>
+          </div>
+          <div class="studio-search-select-box mb-4">
+    <label class="studio-search-label">Category</label>
+    <select name="category" class="studio-search-select studio-lockable">
+      <option value="all"  {{ 'selected' if not g.dataobj or not g.dataobj.category else '' }} >All</option>
+        {% for x in g.bcategory %}
+          <option value="{{x}}" {{ 'selected' if g.dataobj and g.dataobj.category == x else '' }}>{{x}}</option>
+        {% endfor %}
+    </select>
+</div>
+          <div class="studio-search-input-group mb-4">
+            <label class="studio-search-label">Keywords</label>
+            <input type="text" id="searchqueryfor" name="query" class="studio-search-control studio-lockable" value="{{ g.dataobj.video_title if g.dataobj and g.dataobj.video_title else '' }}" placeholder="Search titles...">
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="studio-search-input-group" id="idWrapper">
+                <label class="studio-search-label">Channel IDs (Space separated)</label>
+                <input type="text" name="channel_ids" value="{{ g.dataobj.channel_ids if g.dataobj and g.dataobj.channel_ids else '' }}"
+       pattern="^[\d\s]+$" 
+       title="Only numbers and spaces are allowed" id="channelIdInput" class="studio-search-control" placeholder="e.g. 101 205 309">
+                <div id="idStatus" class="ms-2"></div>
+                <i class="fas fa-info-circle"></i> <strong class="small">Your channel is included by default </strong>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="studio-search-select-box">
+                <label class="studio-search-label">Sort By</label>
+                <select name="sort_by" class="studio-search-select studio-lockable">
+                  {% if g.dataobj and g.dataobj.sort %}
+                  <option value="likes" {{ 'selected' if g.dataobj and g.dataobj.sort=='likes' else '' }}>Like Count</option>
+                <option value="created" {{ 'selected' if g.dataobj and g.dataobj.sort=='created' else '' }}>Upload Date</option>
+                  <option value="views" {{ 'selected' if g.dataobj and g.dataobj.sort=='views' else '' }}>View Count</option>
+                  <option value="name" {{ 'selected' if g.dataobj and g.dataobj.sort=='name' else '' }}>Alphabetical</option>   
+                    {% else %}
+                    <option value="likes"selected>Like Count</option>
+               <option value="created" >Upload Date</option>
+                  <option value="views">View Count</option>
+                  <option value="name">Alphabetical</option>              
+                  {% endif %}   
+                </select>
+              </div>
+            </div>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="col-md-6">
+              <div class="studio-search-select-box">
+                <label class="studio-search-label">Order</label>
+                <select name="order" class="studio-search-select studio-lockable">
+                  {% if g.dataobj and g.dataobj.order %}
+          <option value="desc" {{ 'selected' if g.dataobj and g.dataobj.order=='desc' else '' }}>Descending</option>
+                  <option value="asc" {{ 'selected' if g.dataobj and g.dataobj.order=='asc' else '' }}>Ascending</option>           
+                  {% else %}
+                       <option value="desc" selected>Descending</option>
+                  <option value="asc">Ascending</option>        
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+
+            
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 p-4 pt-0">
+          <button type="button" class="btn btn-light studio-search-btn-flat" data-mdb-dismiss="modal">Cancel</button>
+          <button type="submit" id="submitBtn" class="btn btn-dark studio-search-btn-primary px-4">
+            <i class="fas fa-search me-2"></i>Apply Filters
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+ document.addEventListener('DOMContentLoaded', () => {
+    const idInput = document.getElementById('channelIdInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const lockables = document.querySelectorAll('.studio-lockable');
+    const statusDiv = document.getElementById('idStatus');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    idInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^\d\s]/g, '');
+        const val = this.value.trim();
+
+        if (val.length > 0) {
+            lockables.forEach(el => el.disabled = true);
+            submitBtn.disabled = true;
+            statusDiv.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            fetch('/fetch-channel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                
+                  },
+                body: JSON.stringify({ ids: val }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === true) {
+                    lockables.forEach(el => el.disabled = false);
+                    submitBtn.disabled = false;
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+                } else {
+                    statusDiv.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+                }
+            })
+            .catch(() => {
+                statusDiv.innerHTML = '<i class="fas fa-wifi text-warning"></i>';
+            });
+        } else {
+            lockables.forEach(el => el.disabled = false);
+            submitBtn.disabled = false;
+            statusDiv.innerHTML = '';
+        }
+    });
+});
+</script>
+{% set imglink = url_for('static',filename='img/login.svg') %}
+</div>
+{% if g.user and session.get('login')==True and g.user.nread!=True %}
+<script nonce="{{ csp_nonce() }}">
+function nread() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch(`{{url_for('nread')}}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            const dot = document.getElementById('nread');
+            if (dot) {
+                dot.style.display = 'none';
+            }
+        } else {
+        }
+    })
+    .catch(error => console.error("Error:", error));
+}
+</script>
+{% endif %}
+
+
+</div>
+<div class="container container-bg mt-3">
+   <div class="alert shadow-0 border-0 d-flex align-items-center px-0 py-2 mb-2" role="alert" style="background: transparent;">
+    <button type="button" 
+            onclick="backk()" 
+            class="btn btn-link text-dark fw-bold p-0 shadow-0 d-flex align-items-center text-capitalize" 
+            data-mdb-ripple-init 
+            style="text-decoration: none; border: none; background: none;">
+        <i class="fas fa-chevron-left me-2" style="font-size: 0.8rem;"></i>
+        <span style="letter-spacing: -0.3px;">Back to previous page (Ignoring filtering) </span>
+    </button>
+</div><script nonce="{{ csp_nonce() }}">
+document.addEventListener("DOMContentLoaded", function() {
+  
+    const currentUrl = window.location.href;
+    const referrer = document.referrer;
+    const storedOrigin = sessionStorage.getItem('last_get_origin');
+    if (referrer && !referrer.includes(window.location.pathname)) {
+       const url = new URL(referrer);
+        sessionStorage.setItem('last_get_origin', url.pathname);
+    }
+    const container = document.getElementById('back-alert-container');
+    if (container && sessionStorage.getItem('last_get_origin')) {
+        container.setAttribute("style", "background: transparent; display: flex !important;");
+    }
+});
+function backk() {
+    const destination = sessionStorage.getItem('last_get_origin');
+    
+    if (destination) {
+        window.location.href = destination;
+    } else {
+        window.location.href = "{{ url_for('index') }}";
+    }
+}
+</script>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{category}} alert-dismissible fade show shadow-0 border-0 border-start border-4 border-{{category if category != 'message' else 'primary'}} px-4 py-3 mb-3" role="alert" style="background-color: #f8f9fa; border-radius: 10px;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-3"></i>
+                    <div class="flex-grow-1 small fw-bold text-dark">{{ message|safe }}</div>
+                </div>
+            </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block body %}{% endblock body %}
+</div>
+    <div style="height: 120px;"></div>
+
+<footer class="floating-footer mx-auto mb-4">
+    <div class="container d-flex align-items-center justify-content-between py-2 px-4">
+        <div class="footer-left">
+            <span class="text-muted small">© <span id="da"></span></span>
+            <a class="fw-bold text-dark text-decoration-none ms-1" href="/">{{g.appname}}.com</a>
+        </div>
+
+        <div class="footer-right">
+            <a href="mailto:{{g.myemail}}?subject=Studio%20Suggestions" 
+               class="btn btn-dark rounded-pill px-4 py-2 shadow-sm btn-sm animate-hover">
+                <i class="fas fa-envelope me-2"></i>Contact Developer
+            </a>
+        </div>
+    </div>
+</footer><style nonce="{{ csp_nonce() }}">
+  .floating-footer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    background: rgba(255, 255, 255, 0.8); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px; 
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.floating-footer:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    width: 92%; 
+}
+
+.animate-hover {
+    transition: transform 0.2s ease;
+}
+.animate-hover:hover {
+    transform: scale(1.05);
+}
+
+body {
+    position: relative;
+    min-height: 100vh;
+}
+</style> {% if g.user and session.get('login')==True %}
+  <div class="modal fade notification-suite" id="notification" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold d-flex align-items-center">
+            <i class="fas fa-bell text-primary me-2"></i>  Notifications
+            <span class="badge rounded-pill badge-notification bg-danger ms-2" style="font-size: 0.6rem;">{{ notifs|length }}</span>
+        </h5>
+        <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+   <div class="modal-body p-0 mt-3">
+  <div class="list-group list-group-flush w-100"> {% for x in notifs %}
+    <div class="list-group-item notif-item px-4 py-3 {% if loop.first %}notif-unread{% endif %}">
+      
+      <div class="notif-icon">
+        <span class="small fw-bold">{{ loop.index }}</span>
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 0;">
+        
+        <div class="header-row d-flex justify-content-between align-items-center w-100 mb-1">
+          <h6 class="mb-0 fw-bold small text-dark text-truncate" style="max-width: 70%;">
+            {{ x.title }}
+          </h6>
+          <span class="notif-time">
+            <i class="far fa-clock me-1"></i>
+            {{ x.created.strftime('%b %d') if x.created else 'Recent' }}
+          </span>
+        </div>
+
+        <p class="mb-0 text-muted small text-content">
+          {{ x.content }}
+        </p>
+      </div>
+      
+    </div>
+    {% else %}
+      <div class="p-4 text-center text-muted small">No new notifications</div>
+    {% endfor %}
+  </div>
+</div>
+
+      <div class="modal-footer border-0 p-3">
+        <button type="button" class="btn btn-primary btn-rounded text-capitalize shadow-0 px-4" data-mdb-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+<script nonce="{{ csp_nonce() }}">
+  
+  document.getElementById("da").innerHTML = new Date().getFullYear(); 
+   document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('button, .btn');
+
+    buttons.forEach((button) => {
+      new mdb.Ripple(button, {
+        color: 'light' 
+      });
+    });
+  });
+</script>    <script nonce="{{ csp_nonce() }}">function copyShareLink(id) {
+    const copyText = document.getElementById("shareInput" + id);
+    navigator.clipboard.writeText(copyText.value);
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i>';
+    btn.classList.replace('btn-primary', 'btn-success');
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.replace('btn-success', 'btn-primary');
+    }, 2000);
+}</script>
+<script src="{{ url_for('static', filename='js/data.js') }}" nonce="{{ csp_nonce() }}"></script>
+
+<script src="{{ url_for('static', filename='js/mdb.umd.min.js') }}" nonce="{{ csp_nonce() }}"></script>
+
+<script nonce="{{ csp_nonce() }}"> 
+const s = io("{{request.host}}");
+
+s.on('force_logout', function() {
+   if (window.location.pathname.includes('{{url_for("authbp.login")}}')) {
+        return; 
+    }
+    window.stop(); 
+
+    document.querySelectorAll('form').forEach(form => {
+        form.reset();
+        const elements = form.elements;
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].disabled = true;
+        }
+    });
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, "{{url_for('authbp.login')}}");
+    }
+
+    window.location.replace("{{url_for('authbp.login')}}");
+
+    setTimeout(() => { 
+        window.location.href = "{{url_for('authbp.login')}}"; 
+    }, 100);
+});
+</script>
+
+
+</body>
+</html>

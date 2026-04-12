@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{url_for('static' , filename='css/mdb.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static' , filename='css/data.css')}}">
+    <link rel="shortcut icon" href="{{url_for('static' , filename='img/main.svg')}}" type="image/x-icon">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='font/css/all.min.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+   <title>Admin command center</title>
+
+</head>
+<body>
+  <div class="container  my-5">
+     {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{category}} alert-dismissible fade show shadow-0 border-0 border-start border-4 border-{{category if category != 'message' else 'primary'}} px-4 py-3 mb-3" role="alert" style="background-color: #f8f9fa; border-radius: 10px;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-3"></i>
+                    <div class="flex-grow-1 small fw-bold text-dark">{{ message }}</div>
+                </div>
+            </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% if session.get('admin_email') and session.get('admin_logged_in') and session.get('login') and session.get('user_id') %}
+      <div class="alert alert-warning alert-dismissible fade show shadow-0 border-0 border-start border-4 border-{{category if category != 'message' else 'primary'}} px-4 py-3 mb-3" role="alert" style="background-color: #f8f9fa; border-radius: 10px;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-3"></i>
+                    <div class="flex-grow-1 small fw-bold text-dark">You are logged in as a normal user as well, you may be effected too.</div>
+                </div>
+            </div>
+    {% endif %}
+{% block body %}
+    
+{% endblock body %}<script nonce="{{ csp_nonce() }}">
+  
+   document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('button, .btn');
+
+    buttons.forEach((button) => {
+      new mdb.Ripple(button, {
+        color: 'light' 
+      });
+    });
+  });
+</script>  <script nonce="{{ csp_nonce() }}">
+  document.addEventListener('DOMContentLoaded', () => {
+    // This manually initializes all modals on the page
+    document.querySelectorAll('.modal').forEach((modal) => {
+      new mdb.Modal(modal);
+    });
+  });
+</script>
+<script src="{{ url_for('static', filename='js/mdb.umd.min.js') }}" nonce="{{ csp_nonce() }}"></script>
+<script src="{{ url_for('static', filename='js/data.js') }}" nonce="{{ csp_nonce() }}"></script>
+
+    </div></body></html>

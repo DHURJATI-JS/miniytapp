@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% block title %}
+    Settings
+{% endblock title %}
+{% block body %}
+
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<style nonce="{{ csp_nonce() }}">
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.9);
+        --accent-color: #1266f1;
+        --danger-soft: #fff5f5;
+        --secondary-soft: #f8f9fa;
+    }
+
+    body { background-color: #f4f7fe; }
+
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+    }
+
+    .profile-wrapper { position: relative; margin-top: -60px; }
+    
+    .profile-preview {
+        border: 6px solid #fff;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        background: #fff;
+    }
+
+    .form-control { border-radius: 12px !important; background: rgba(0,0,0,0.02); }
+
+    .danger-box {
+        background: var(--danger-soft);
+        border: 2px dashed #f93154;
+        border-radius: 20px;
+    }
+
+    .history-box {
+        background: var(--secondary-soft);
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .d-none { display: none !important; }
+</style>
+
+<div class="container py-5 mt-4">
+    <div class="row g-5">
+        
+        <div class="col-lg-7">
+            <div class="card glass-card p-4 pt-0">
+                <form action="{{ url_for('accsettings.settings') }}" method="POST" enctype="multipart/form-data">
+                    
+                    <div class="text-center profile-wrapper mb-4">
+                        <div class="d-inline-block position-relative">
+                            <img id="profileDisplay" src="{{ session.get('photo')}}" 
+                                 class="rounded-circle profile-preview" width="130" height="130" 
+                                 style="object-fit: cover; cursor: pointer;" onclick="document.getElementById('fileInput').click();">
+                            <label for="fileInput" class="btn btn-primary btn-floating shadow-0 position-absolute bottom-0 end-0">
+                                <i class="fas fa-pen"></i>
+                            </label>
+                        </div>
+                        <input  accept="image/*"  type="file" id="fileInput" name="profile_photo" style="display: none;" onchange="previewImage(this)">
+                        <h4 class="fw-bold mt-3 mb-0">{{ g.user.name }}</h4>
+                        <p class="text-muted small">Member since {{ g.user.created.strftime('%b %d, %Y') }}</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="form-outline" data-mdb-input-init>
+                                <input type="text" id="name" name="name" minlength="10" maxlength="50" class="form-control" value="{{ g.user.name }}" required />
+                                <label class="form-label" for="name">Name</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="form-outline" data-mdb-input-init>
+                                <input type="email" id="email" name="email" maxlength="100" class="form-control" value="{{ g.user.email }}" required />
+                                <label class="form-label" for="email">Email Address</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-outline mb-4" data-mdb-input-init>
+                        <input type="password" id="new_pass" name="new_password" minlength="10" class="form-control" placeholder="Leave blank to keep current" />
+                        <label class="form-label" for="new_pass">Set New Password</label>
+                    </div>
+<div class="card glass-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="fas fa-shield-alt text-primary me-2"></i>Data Privacy</h6>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" name="cdata" value="1" id="privacySwitch" 
+                   {% if g.user.collect_data %}checked{% endif %} 
+                   onchange="toggleDataCollection(this.checked)">
+        </div>
+    </div>
+    <p class="small text-muted mb-0">
+        Enable personal recommendations based on your activity.
+    </p>
+    <div class="mt-3 p-2 rounded-3" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);">
+        <p style="font-size: 0.75rem;" class="text-muted mb-0">
+            <i class="fas fa-info-circle me-1"></i> To fully reset your profile, you must also use <b>Clear Watch above</b> below.
+        </p>
+    </div>
+</div>
+                    <hr class="my-4 opacity-5">
+
+                    <div class="p-4 rounded-4 mb-4" style="background: #f0f4ff; border: 1px solid #dbe4ff;">
+                        <label class="form-label fw-bold text-primary mb-2" for="curr_pass">
+                            <i class="fas fa-lock me-2"></i>Verify Password to Save
+                        </label>
+                        <div class="form-outline" data-mdb-input-init>
+                            <input type="password" id="curr_pass" name="current_password" class="form-control bg-white" required />
+                            <label class="form-label" for="curr_pass">Current Password*</label>
+                        </div>
+                    </div>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-primary btn-lg btn-rounded w-100 shadow-0">
+                        Update All Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card glass-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Engagement</h5>
+                    <i class="fas fa-chart-pie text-primary"></i>
+                </div>
+                
+                <div id="chartParent" style="height: 260px; position: relative;">
+                    <canvas id="categoryChart" class="{% if not categories %}d-none{% endif %}"></canvas>
+                    
+                    {% if not categories %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-cookie-bite fa-3x text-muted opacity-25 mb-3"></i>
+                        <h6 class="fw-bold text-muted">No History Found</h6>
+                        <p class="small text-muted px-4">Watch content to see your preferences.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="history-box p-3 mt-4 text-center">
+                    <p class="small text-muted mb-2">Want a fresh start?</p>
+                    <button type="button" {% if not categories %}disabled{% endif %} class="btn btn-link btn-sm text-decoration-none fw-bold" 
+                            data-mdb-modal-init data-mdb-target="#clearHistoryModal">
+                        <i class="fas fa-broom me-2"></i>Clear Analytics
+                    </button>
+                </div>
+            </div>
+
+            <div class="danger-box p-4 text-center">
+                <h6 class="text-danger fw-bold mb-3"><i class="fas fa-user-slash me-2"></i>Danger Zone</h6>
+           
+                <button type="button" class="btn btn-danger btn-sm btn-rounded shadow-0" 
+                        data-mdb-modal-init data-mdb-target="#deleteModal">
+                    Delete Account Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="clearHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-5 border-0 shadow-5 overflow-hidden">
+        <div class="modal-body p-5 text-center">
+          <div class="text-warning mb-3">
+              <i class="fas fa-exclamation-triangle fa-3x"></i>
+          </div>
+          
+          <h4 class="fw-bold mb-2">Clear Analytics?</h4>
+          <p class="text-muted small mb-4">This will permanently reset your watch time statistics and trend charts. Please verify your password to confirm.</p>
+
+          <form action="{{ url_for('accsettings.clearhistory') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <div class="p-4 rounded-4 mb-4 text-start" style="background: #fffdf5; border: 1px solid #ffecb3;">
+                  <label class="form-label fw-bold text-warning mb-2" for="clear_pass">
+                      <i class="fas fa-lock me-2"></i>Current Password
+                  </label>
+                  <div class="form-outline mb-0" data-mdb-input-init>
+                      <input type="password" id="clear_pass" name="password" 
+                             class="form-control bg-white shadow-sm" 
+                             placeholder="Enter password to proceed" required />
+                  </div>
+              </div>
+
+              <div class="d-flex gap-3">
+                  <button type="button" class="btn btn-light w-100 btn-rounded fw-bold py-3" data-mdb-dismiss="modal">
+                      Cancel
+                  </button>
+                  <button type="submit" class="btn btn-warning text-white w-100 btn-rounded fw-bold py-3 shadow-0">
+                      Clear History
+                  </button>
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade shadow-5" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-5 border-0 overflow-hidden">
+            <div class="modal-body p-5 text-center">
+                <div class="text-danger mb-4">
+                    <i class="fas fa-user-times fa-3x"></i>
+                </div>
+                <h4 class="fw-bold text-danger mb-2">Permanent Delete?</h4>
+                <p class="text-muted mb-4">This action cannot be undone. Please verify your password to proceed with account erasure.</p>
+
+                <form action="{{ url_for('accsettings.delacc') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="p-4 rounded-4 mb-4" style="background: #fff5f5; border: 1px solid #ffe5e5;">
+                        <label class="form-label fw-bold text-danger mb-3" for="del_pass">
+                            <i class="fas fa-lock me-2"></i>Confirm Identity
+                        </label>
+                        <div class="form-outline mb-0" data-mdb-input-init>
+                            <input type="password" id="del_pass" name="current_password" 
+                                   class="form-control form-control-lg bg-white shadow-sm" 
+                                   placeholder="Enter Current Password" required />
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-light w-100 btn-rounded fw-bold py-3" data-mdb-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger w-100 btn-rounded fw-bold py-3 shadow-0">
+                            Delete Forever
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+   function initMyChart() {
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return;
+
+    const labels = {{ categories|safe if categories else [] }};
+    const rawData = {{ watch_counts|safe if watch_counts else [] }};
+
+    if (labels.length === 0 || !rawData.some(v => v > 0)) {
+        ctx.classList.add('d-none');
+        return; 
+    }
+
+    // --- NEW PERCENTAGE CALCULATION ---
+    const total = rawData.reduce((a, b) => a + b, 0);
+    const percentageData = rawData.map(value => ((value / total) * 100).toFixed(1));
+
+    ctx.classList.remove('d-none');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: percentageData, // Use the new percentages here
+                backgroundColor: ['#1266f1', '#00b74a', '#39c0ed', '#ffa900', '#f93154'],
+                hoverOffset: 15,
+                borderWidth: 6,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '82%',
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` ${context.label}: ${context.raw}%`;
+                        }
+                    }
+                },
+                legend: { 
+                    position: 'bottom', 
+                    labels: { usePointStyle: true, padding: 15, font: { size: 11 } } 
+                }
+            }
+        }
+    });
+}
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = (e) => document.getElementById('profileDisplay').src = e.target.result;
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    window.addEventListener('load', initMyChart);
+</script>
+
+{% endblock body %}

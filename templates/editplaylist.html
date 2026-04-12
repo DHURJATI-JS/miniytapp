@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}Edit Playlist: {{ g.playlist.name }}{% endblock title %}
+
+{% block body %}
+<style>
+    .edit-container { max-width: 900px; margin-top: 40px; }
+    .edit-card { border-radius: 24px; border: none; background: #fff; }
+    .preview-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #9e9e9e; margin-bottom: 8px; display: block; }
+    
+    .thumb-edit-box { 
+        width: 100%; 
+        aspect-ratio: 16 / 9; 
+        background: #f8f9fa; 
+        border-radius: 16px; 
+        overflow: hidden; 
+        border: 2px dashed #e0e0e0; 
+        position: relative;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .thumb-edit-box:hover { border-color: #1266f1; background: #f0f7ff; }
+    .thumb-edit-box img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .edit-input { background: #f8f9fa !important; border: 1px solid #eee !important; border-radius: 12px !important; padding: 12px 15px !important; }
+    .edit-input:focus { background: #fff !important; border-color: #1266f1 !important; box-shadow: 0 0 0 4px rgba(18, 102, 241, 0.1) !important; }
+    
+    .danger-zone { background: #fff5f5; border: 1px solid #ffe3e3; border-radius: 16px; padding: 20px; }
+</style>
+
+<div class="container edit-container mb-5">
+    <div class="d-flex align-items-center mb-4">
+        
+        <h4 class="fw-bold m-0">Edit Playlist Settings</h4>
+    </div>
+
+    <div class="card edit-card shadow-lg">
+        <div class="card-body p-4 p-md-5">
+            <form action="{{ url_for('playlistbp.editplaylist', id=g.playlist.id) }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <span class="preview-label">Playlist Cover</span>
+                        <label for="thumb-input" class="w-100">
+                            <div class="thumb-edit-box" id="thumb-display">
+                                <img src="{{ url_for('static', filename='bannerimage/' + (g.playlist.thumbnail or 'defbanner.jpg')) }}" id="img-preview">
+                                <div class="position-absolute top-50 start-50 translate-middle text-center thumb-overlay">
+                                    <i class="fas fa-camera fa-2x text-white opacity-75"></i>
+                                </div>
+                            </div>
+                        </label>
+                        <input type="file" id="thumb-input" name="thumbnail" accept="image/*" hidden onchange="previewImage(this)">
+                        <p class="small text-muted mt-2 text-center"><i class="fas fa-info-circle me-1"></i> Click image to upload a new cover</p>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="form-outline mb-4" data-mdb-input-init>
+                            <input type="text" name="name" value="{{ g.playlist.name }}" required id="playName" class="form-control form-control-lg edit-input" />
+                            <label class="form-label" for="playName">Playlist Name</label>
+                        </div>
+
+                        <div class="form-outline mb-4" data-mdb-input-init>
+                            <textarea name="desc" class="form-control edit-input" required minlength="10" maxlength="300" id="playDesc" rows="4">{{ g.playlist.description }}</textarea>
+                            <label class="form-label" for="playDesc">Description</label>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center border mb-4">
+                            <div>
+                                <h6 class="mb-0 fw-bold small mb-1">Public Visibility</h6>
+                                <p class="text-muted mb-0 small" style="font-size: 0.75rem;">Make this playlist discoverable to others</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" style="width: 40px; height: 20px;" name="visibility" type="checkbox" value="public" id="visCheck" 
+                                {% if g.playlist.display %}checked{% endif %} />
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            
+                            <button type="submit" class="btn btn-primary btn-rounded px-4 fw-bold shadow-0 flex-grow-1">
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-danger btn-rounded px-4 fw-bold shadow-0 border" onclick="location.reload()">
+                                Discard
+                            </button>
+                        </div>
+                                                <div class="d-flex my-2 gap-2">
+
+                        <span class="text-small">
+                                <i class="fas fa-clock"></i> {{g.playlist.created.strftime('%b %d, %Y') }}
+                            </span></div>
+                    </div>
+                </div>
+            </form>
+
+            <hr class="my-5 opacity-5">
+
+            <div class="danger-zone">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-danger mb-1">Delete Playlist</h6>
+                        <p class="text-muted mb-0 small">Once deleted, you cannot recover this playlist. Videos won't be deleted.</p>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-rounded fw-bold shadow-0" 
+                            data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#deleteModal">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0" style="border-radius: 20px;">
+            <div class="modal-body p-4 text-center">
+                <div class="text-danger mb-3"><i class="fas fa-exclamation-triangle fa-3x"></i></div>
+                <h5 class="fw-bold">Are you sure?</h5>
+                
+                <p class="text-muted small mb-0">This will permanently delete:</p>
+                <div class="d-flex justify-content-center">
+                    <strong class="text-dark d-inline-block text-truncate" 
+                            style="max-width: 200px;" 
+                            title="{{ g.playlist.name }}">
+                        {{ g.playlist.name }}
+                    </strong>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-light btn-rounded flex-grow-1 shadow-0 border" data-mdb-dismiss="modal">Keep it</button>
+                    <form action="{{ url_for('playlistbp.deleteplaylist', id=g.playlist.id) }}" method="POST" class="flex-grow-1">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-danger btn-rounded w-100 shadow-0 fw-bold">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('img-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock body %}

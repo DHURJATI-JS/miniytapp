@@ -1,0 +1,199 @@
+{% extends 'admin_base.html' %}
+
+{% block body %}
+
+<style  nonce="{{ csp_nonce() }}">
+    body { background-color: #f8fbff; font-family: 'Inter', -apple-system, sans-serif; }
+    .studio-container { max-width: 1200px; margin: 40px auto; }
+    .card-custom { border: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); overflow: hidden; }
+    .header-blue { background: #007bff; color: white; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .btn-studio { border-radius: 10px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+    .table thead th { background-color: #fcfcfc; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; padding: 15px 20px; }
+    .report-row:hover { background-color: #f1f7ff !important; }
+    .avatar-placeholder { width: 35px; height: 35px; background: #e9ecef; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #495057; }
+
+    body { background-color: #f8fbff; font-family: 'Inter', -apple-system, sans-serif; }
+    .studio-container { max-width: 1200px; margin: 40px auto; }
+    .card-custom { border: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); overflow: hidden; }
+    .header-blue { background: #007bff; color: white; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .command-bar { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid #e0e6ed; }
+    .btn-studio { border-radius: 10px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+</style>
+<div class="studio-container px-3">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Moderation Studio</h2>
+            <div class="d-flex align-items-center mt-1">
+                <small class="text-muted">Admin: <span class="text-primary fw-bold">{{ session['admin_email'] }}</span></small>
+            </div>
+        </div>
+        <form action="{{ url_for('adminbp.loggadminoff') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-white border shadow-sm btn-studio px-4">
+                <i class="fas fa-sign-out-alt me-2 text-danger"></i>Logout
+            </button>
+        </form>
+    </div>
+
+  <div class="card card-custom command-bar mb-4">
+    <div class="card-body py-4">
+        <h6 class="fw-bold mb-3 text-dark"><i class="fas fa-terminal me-2 text-primary"></i>Universal Command Center</h6>
+        <form action="/admin/studio/action" method="POST" class="row g-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="col-md-2">
+                <select name="target_type" id="target_type_select" class="form-select border-0 bg-light" style="border-radius: 10px;">
+                    <option value="user">User ID</option>
+                    <option value="video">Video ID</option>
+                    <option value="channel">Channel ID</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <input type="text" name="target_id" class="form-control border-0 bg-light" placeholder="Enter ID..." required style="border-radius: 10px;">
+            </div>
+
+            <div class="col-md-3">
+                <select name="action_type" id="action_type_select" class="form-select border-0 bg-light" style="border-radius: 10px;">
+                    <option value="ban">Ban/Unban User</option>
+                    <option value="wipe" class="text-danger">Wipe Everything (Full Delete)</option>
+                    <option value="toggle_video">Enable/Disable Video</option>
+                    <option value="toggle_channel">Enable/Disable Channel</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100 btn-studio shadow-0" onclick="return confirm('Execute this moderation command?')">
+                    Execute Action
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+    <script nonce="{{ csp_nonce() }}">
+document.addEventListener('DOMContentLoaded', function() {
+    const targetSelect = document.getElementById('target_type_select');
+    const actionSelect = document.getElementById('action_type_select');
+    const allOptions = Array.from(actionSelect.options);
+    function updateOptions() {
+        const selectedType = targetSelect.value;
+        actionSelect.innerHTML = '';
+        allOptions.forEach(option => {
+            const val = option.value;
+            let show = false;
+            if (selectedType === 'user' && (val === 'ban' || val === 'wipe')) show = true;
+            if (selectedType === 'video' && (val === 'toggle_video' || val === 'wipe')) show = true;
+            if (selectedType === 'channel' && (val === 'toggle_channel' || val === 'wipe')) show = true;
+            if (show) {
+                actionSelect.appendChild(option);
+            }
+        });
+    }
+   targetSelect.addEventListener('change', updateOptions);
+   updateOptions();
+});
+</script>
+    </script>
+    <div class="card card-custom">
+        <div class="header-blue d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul me-2"></i>Live Reports Queue</h5>
+            <span class="badge bg-white text-primary rounded-pill px-3 py-2">{{ reports|length }} Active Issues</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Target Information</th>
+                            <th>Offense / Reason</th>
+                            <th class="text-center">Reporter Controls</th>
+                            <th class="text-center">Reported Controls</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reports %}
+<tr class="report-row">
+    <td class="ps-4 py-3">
+        <div class="d-flex align-items-center">
+            <div class="avatar-placeholder me-3">#{{ r.target_id }}</div>
+            <div>
+                <div class="fw-bold text-dark">ID: #{{ r.target_id }}</div>
+                <small class="badge badge-light text-muted shadow-0 border">{{ r.target_type }}</small>
+            </div>
+        </div>
+    </td>
+    <td>
+        <div class="d-flex flex-column">
+            <span class="text-dark fw-bold mb-1">{{ r.reason[:40] }}{% if r.reason|length > 40 %}...{% endif %}</span>
+            <a href="#" class="text-primary small fw-bold" 
+               data-mdb-toggle="modal" 
+               data-mdb-target="#modal{{r.id}}">
+                <i class="fas fa-eye me-1"></i> View Full Details
+            </a>
+        </div>
+    </td>
+    <td class="text-center">
+        <div class="btn-group shadow-0">
+            <a href="{{url_for('viewprofile',userid=r.reporter_id)}}" class="btn btn-sm btn-light border" data-mdb-ripple-init title="View Profile"><i class="fas fa-external-link-alt"></i></a>
+            <a href="/admin/action/{{r.id}}/reporter/ban" class="btn btn-sm btn-outline-warning" data-mdb-ripple-init>Ban</a>
+            <a href="/admin/action/{{r.id}}/reporter/delete" class="btn btn-sm btn-outline-danger" data-mdb-ripple-init>Del</a>
+        </div>
+    </td>
+    <td class="text-center">
+        <div class="btn-group shadow-0">
+            <a href="{{url_for('viewprofile',userid=r.reported_user_id)}}" class="btn btn-sm btn-light border" data-mdb-ripple-init title="View Profile"><i class="fas fa-external-link-alt"></i></a>
+            <a href="/admin/action/{{r.id}}/reported/ban" class="btn btn-sm btn-warning" data-mdb-ripple-init>Ban</a>
+            <a href="/admin/action/{{r.id}}/reported/delete" class="btn btn-sm btn-danger" data-mdb-ripple-init>Del</a>
+            <a href="/admin/action/{{r.id}}/reported/done" class="btn btn-sm btn-success ms-2 shadow-0" style="border-radius: 8px !important;" data-mdb-ripple-init><i class="fas fa-check"></i></a>
+        </div>
+    </td>
+</tr>
+
+<div class="modal fade" id="modal{{r.id}}" tabindex="-1"  aria-labelledby="label{{r.id}}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-5" style="border-radius: 15px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="label{{r.id}}">Report Case #{{r.id}}</h5>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <label class="text-muted small fw-bold text-uppercase">Reason for Report</label>
+                <p class="fw-bold text-primary mb-4">{{ r.reason }}</p>
+                
+                <label class="text-muted small fw-bold text-uppercase">Full Detailed Evidence</label>
+                <div class="p-3 bg-light rounded-3 text-dark small" style="line-height: 1.6; border: 1px solid #eee;">
+                    {{ r.details if r.details else "No additional details provided." }}
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light shadow-0 w-100" data-mdb-dismiss="modal" style="border-radius: 10px;">Close Review</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div><script nonce="{{ csp_nonce() }}">
+  document.addEventListener('DOMContentLoaded', () => {
+    const triggerButtons = document.querySelectorAll('[data-mdb-target^="#modal"]');
+    
+    triggerButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = btn.getAttribute('data-mdb-target');
+        const modalElement = document.querySelector(targetId);
+        if (modalElement) {
+          const modalInstance = new mdb.Modal(modalElement);
+          modalInstance.show();
+        } else {
+        }
+      });
+    });
+  });
+</script>
+
+{% endblock body %}

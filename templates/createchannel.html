@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Channel{% endblock %}
+
+{% block body %}
+<style  nonce="{{ csp_nonce() }}">
+    :root { --card-radius: 24px; --inner-radius: 18px; }
+    
+    .create-wrapper { max-width: 850px; margin: 50px auto; padding: 0 15px; }
+    
+    /* Branding Header - The "Profile" Look */
+    .branding-header { position: relative; margin-bottom: 80px; }
+    
+    .banner-container {
+        width: 100%; height: 240px; border-radius: var(--card-radius);
+        overflow: hidden; background: #f0f2f5; border: 2px dashed #d1d5db;
+        transition: 0.3s; cursor: pointer; position: relative;
+        display: block; /* Ensures label acts as a block trigger */
+    }
+    .banner-container:hover { border-color: #1266f1; background: #eef2ff; }
+    
+    /* Ensure default image is visible but hint is on top */
+    .banner-container img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; z-index: 1; }
+
+    .icon-container {
+        position: absolute; bottom: -50px; left: 40px;
+        width: 120px; height: 120px; border-radius: var(--inner-radius);
+        background: #fff; padding: 5px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        cursor: pointer; z-index: 5;
+    }
+    .icon-container img { width: 100%; height: 100%; object-fit: cover; border-radius: calc(var(--inner-radius) - 5px); }
+
+    .upload-hint { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        pointer-events: none; text-align: center; z-index: 2;
+    }
+
+    /* Form Styling */
+    .custom-card { border-radius: var(--card-radius); border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
+    .form-label { font-weight: 700; color: #444; font-size: 0.9rem; margin-bottom: 8px; display: block; }
+    
+    .glass-input { 
+        border-radius: var(--inner-radius) !important; 
+        border: 1px solid #e5e7eb !important; 
+        padding: 14px 20px !important;
+        transition: 0.3s !important;
+        background: #fdfdfd !important;
+    }
+    .glass-input:focus { 
+        border-color: #1266f1 !important; 
+        background: #fff !important; 
+        box-shadow: 0 0 0 4px rgba(18, 102, 241, 0.05) !important; 
+        outline: none;
+    }
+
+    /* Switch Styling */
+    .visibility-box {
+        background: #f8f9fa; border-radius: var(--inner-radius);
+        padding: 20px; display: flex; align-items: center; justify-content: space-between;
+    }
+</style>
+
+<div class="create-wrapper">
+    <div class="card custom-card">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h3 class="fw-bold mb-0">Launch New Channel</h3>
+            </div>
+
+            <form action="{{ url_for('channelbp.createchannel') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="branding-header">
+                    <label for="bannerInput" class="banner-container">
+                        <div id="bannerHint" class="upload-hint">
+                            <i class="fas fa-camera fa-2x mb-2"></i><br>Change Banner
+                        </div>
+                        <img id="bannerPreview" src="{{ url_for('static', filename='bannerimage/defbanner.jpg') }}">
+                    </label>
+
+                    <label for="iconInput" class="icon-container">
+                        <img id="iconPreview" src="{{ url_for('static', filename='profilephotos/def.svg') }}">
+                        <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-1 shadow-sm" style="margin-bottom: -5px; margin-right: -5px; z-index: 6;">
+                            <i class="fas fa-camera fa-xs p-1"></i>
+                        </div>
+                    </label>
+                </div>
+
+                <input type="file" name="banner" id="bannerInput" class="d-none" accept="image/*" onchange="previewFile(this, 'bannerPreview')">
+                <input type="file" name="icon" id="iconInput" class="d-none" accept="image/*" onchange="previewFile(this, 'iconPreview')">
+
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label" for="cname" >Channel Name*</label>
+                        <input type="text" name="channelname" required minlength="10" maxlength="50"  id="cname" class="form-control glass-input" placeholder="What's the name of your brand?" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="cdesc"  > Description*</label>
+                        <textarea name="description" id="cdesc" class="form-control glass-input" rows="4" required minlength="10" maxlength="500" placeholder="Briefly describe what you'll be posting..."></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="visibility-box">
+                            <div>
+                                <p class="fw-bold mb-0 text-dark">Public Visibility</p>
+                                <small class="text-muted">Allow others to find and subscribe to this channel.</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" name="cdata" value="1" id="privacySwitch" checked style="width: 40px; height: 20px; cursor: pointer;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 d-flex gap-2 justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-rounded btn-lg px-5 fw-bold shadow-0">
+                        Create Channel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+    function previewFile(input, previewId) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(previewId);
+                img.src = e.target.result;
+                // Ensure banner style updates
+                if (previewId === 'bannerPreview') {
+                    img.parentElement.style.borderStyle = "solid";
+                    img.parentElement.style.borderColor = "#eee";
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

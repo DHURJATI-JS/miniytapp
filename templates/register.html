@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock title %}
+{% block body %}
+
+<style nonce="{{ csp_nonce() }}">
+  /* Glassmorphism Effect */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    padding: 2rem;
+  }
+
+  /* Profile Preview Styling */
+  #profilePreview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    display: none; /* Hidden until file selected */
+    margin: 10px auto 20px auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .form-outline input, .form-outline textarea {
+    background: rgba(255, 255, 255, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  }
+</style>
+
+<section class="vh-90">
+  <div class="container py-5 h-100">
+    <div class="row d-flex align-items-center justify-content-center h-100">
+      
+      <div class="col-md-8 col-lg-7 col-xl-6 text-center">
+        <img src="{{ imglink }}" class="img-fluid" alt="Phone image">
+      </div>
+
+      <div class="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+        <div class="glass-card">
+          <form action="{{url_for('authbp.register')}}" method="POST" enctype="multipart/form-data">
+            
+            <h2 class="text-center mb-4">Create Account</h2>
+
+            <div class="text-center">
+              <img id="profilePreview" src="#" alt="Preview">
+            </div>
+
+            <div data-mdb-input-init class="form-outline mb-4">
+              <input type="email" name="email" id="regEmail" maxlength="100" required class="form-control form-control-lg" />
+              <label class="form-label" for="regEmail">Email address*</label>
+            </div>
+
+            <div data-mdb-input-init class="form-outline mb-4">
+              <input type="password" name="password" id="regPass" minlength="10" required class="form-control form-control-lg" />
+              <label class="form-label" for="regPass">Password*</label>
+            </div>
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div data-mdb-input-init class="form-outline mb-4">
+              <input type="text" name="name" minlength="10" maxlength="50" id="regName" required class="form-control form-control-lg" />
+              <label class="form-label" for="regName">Name*</label>
+            </div>
+
+            <div data-mdb-input-init class="form-outline mb-4">
+              <input type="text" name="cname" id="regcName" minlength="10" maxlength="50" class="form-control form-control-lg" />
+              <label class="form-label" for="regcName">Channel name</label>
+            </div>
+
+            <div data-mdb-input-init class="form-outline mb-4">
+              <textarea name="cdesc" class="form-control form-control-lg" minlength="10" maxlength="500" id="fv"></textarea>
+              <label class="form-label" for="fv">Channel description</label>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label fw-bold">Profile photo:</label>
+              <input accept="image/*" type="file" class="form-control form-control-lg" name="file" id="profileInput" />
+            </div>        
+  <input type="hidden" name="prevurl" id="prevurl">
+
+            <div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center border mb-4">
+               <div>
+                                <h6 class="mb-0 fw-bold small"><i class="fas fa-microchip"></i> Auto login</h6>
+                                <p class="text-muted mb-0 small" style="font-size: 0.75rem;">logs the user in after account creation</p>
+                            </div>
+                 <div class="form-check form-switch">
+                                <input class="form-check-input" style="width: 40px; height: 20px;" name="autologin" type="checkbox" value="autologin" id="visCheck" 
+                                checked/>
+                            </div>
+            </div>
+
+            <button type="submit" data-mdb-ripple-init class="btn btn-primary btn-lg shadow-sm w-100">Sign Up</button>
+
+           
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script nonce="{{ csp_nonce() }}">
+  const profileInput = document.getElementById('profileInput');
+  const profilePreview = document.getElementById('profilePreview');
+
+  profileInput.onchange = evt => {
+    const [file] = profileInput.files;
+    if (file) {
+      profilePreview.src = URL.createObjectURL(file);
+      profilePreview.style.display = 'block';
+    }
+  }
+</script>
+
+{% endblock body %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Reset password{% endblock title %}
+{% block body %}
+   <section class="vh-90 custom-reset-theme">
+  <div class="container py-5 h-100">
+    <div class="row d-flex align-items-center justify-content-center h-100">
+      
+      <div class="col-md-8 col-lg-7 col-xl-6">
+        <img src="{{ imglink }}" class="img-fluid custom-reset-img" alt="Reset illustration">
+      </div>
+
+      <div class="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+        <div class="custom-reset-header mb-4">
+            <h2 class="fw-bold">Continued reset</h2>
+            <p class="text-muted">Enter your code and the desired password</p>
+        </div>
+
+        <form action="{{url_for('authbp.nextrespass' ,token=token)}}" method="post">
+          <div data-mdb-input-init class="form-outline mb-4">
+            <input type="text" required id="resetEmail" name="code" class="form-control form-control-lg custom-input" />
+            <label class="form-label" for="resetEmail">Code</label>
+          </div>
+          <input type="text" name="session" value="{{session_uuid}}" style="display: none;">
+<div data-mdb-input-init class="form-outline mb-4">
+            <input type="password" required id="resetEmail"  minlength="10"  name="password" class="form-control form-control-lg custom-input" />
+            <label class="form-label" for="resetEmail">Password</label>
+          </div><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" data-mdb-ripple-init class="btn btn-primary btn-lg btn-block custom-btn-primary">
+            Update
+          </button>
+        </form>
+
+          <div class="divider d-flex align-items-center my-4">
+            <hr class="flex-grow-1">
+            <p class="text-center fw-bold mx-3 mb-0 text-muted">OR</p>
+            <hr class="flex-grow-1">
+          </div>
+            <form action="{{ url_for('authbp.cancel_reset', token=token) }}" method="post"><input type="text" name="session" value="{{session_uuid}}" style="display: none;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button data-mdb-ripple-init class="btn btn-outline-secondary btn-lg btn-block custom-btn-back" 
+            type="submit">
+            Cancel the token
+          </button></form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style nonce="{{ csp_nonce() }}">
+    .custom-reset-theme {
+        /* Matching your system's dark/blue developer theme */
+        background-color: transparent; 
+    }
+
+    .custom-reset-img {
+        /* Subtle animation or styling for the reset page */
+        filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
+    }
+
+    .custom-input {
+        transition: all 0.2s ease-in-out;
+    }
+
+    .custom-input:focus {
+        box-shadow: 0 0 0 0.25 darkcyan; /* Or your specific accent color */
+        border-color: #38bdf8;
+    }
+
+  
+
+    .custom-btn-back {
+        border-width: 2px !important;
+        font-weight: 500;
+    }
+
+    .divider:after,
+    .divider:before {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #eee;
+    }
+</style>
+{% endblock body %}

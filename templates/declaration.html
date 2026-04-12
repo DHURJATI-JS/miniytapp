@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}
+    Declaration | System Integrity
+{% endblock title %}
+{% block body %}
+<div class="container py-5" style="margin-top: 20px;">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-5">System <span class="text-primary">Integrity</span> Report</h1>
+        <p class="text-muted">Technical Audit of Infrastructure, Security Protocols & Multi-Stage Load Benchmarks</p>
+        <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
+            <span class="badge rounded-pill bg-primary px-3 shadow-sm">PostgreSQL 16</span>
+            <span class="badge rounded-pill bg-dark px-3 shadow-sm">SQLAlchemy ORM</span>
+            <span class="badge rounded-pill bg-info px-3 text-dark shadow-sm">SocketIO Real-time</span>
+            <span class="badge rounded-pill bg-danger px-3 shadow-sm">Locust Stress Verified</span>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="row align-items-center text-center text-md-start">
+            <div class="col-md-1">
+                <i class="fab fa-linux fa-3x text-dark opacity-25"></i>
+            </div>
+            <div class="col-md-11">
+                <h6 class="fw-bold mb-1 text-uppercase text-primary small">Test Environment (Production Mirror)</h6>
+                <p class="small text-muted mb-0">
+                    <strong>OS:</strong> Arch Linux | <strong>CPU:</strong> i5-12400F | <strong>RAM:</strong> 32GB DDR4 | <strong>GPU:</strong> RTX 3060 12GB | <strong>Storage:</strong> 1TB SATA SSD
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="bg-primary p-1"></div>
+        <div class="card-body p-4 p-md-5">
+            <div class="row">
+                <div class="col-lg-5 mb-4">
+                    <h3 class="fw-bold mb-3">Load Test <span class="text-primary">Audit</span></h3>
+                    <p class="text-secondary small mb-4">
+                        The system underwent rigorous benchmarking via <strong>Locust</strong> to determine architectural durability and peak resource saturation points.
+                    </p>
+                    
+                    <div class="mb-4">
+                        <small class="fw-bold text-uppercase text-success letter-spacing-1">Phase 1: Volume Stability</small>
+                        <div class="p-3 bg-light rounded-3 mt-2 border-start border-4 border-success">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small fw-bold">Total Requests Handled (10 min window)</span>
+                                <span class="fw-bold">354,496</span>
+                            </div>
+                           <div class="d-flex justify-content-between mb-1">
+        <span class="small">Burst Peak Throughput</span>
+        <span class="fw-bold text-primary">688.08 req/s</span>
+    </div>
+    <div class="d-flex justify-content-between mb-1">
+        <span class="small">Sustained Equilibrium</span>
+        <span class="fw-bold">504.05 req/s</span>
+    </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small">Integrity / Failure Rate</span>
+                                <span class="fw-bold text-success">0.00%</span>
+                            </div>
+                        </div>
+                        <p class="x-small text-muted mt-2">Zero packet loss or DB connection drops over 350k+ transactions.</p>
+                    </div>
+
+                    <div>
+                        <small class="fw-bold text-uppercase text-danger letter-spacing-1">Phase 2: Extreme Saturation</small>
+                        <div class="p-3 bg-light rounded-3 mt-2 border-start border-4 border-danger">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small">Max Attempted Load</span>
+                                <span class="fw-bold">783.90 req/s</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small">Saturation Failure Rate</span>
+                                <span class="fw-bold text-danger">19.81%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="p-3 bg-light rounded-4 shadow-inner h-100">
+                        <h6 class="fw-bold small mb-3 text-uppercase text-muted">Endpoint Load Distribution (Phase 2 Data)</h6>
+                        <canvas id="locustChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 p-4 rounded-4 bg-dark text-white">
+                <h5 class="fw-bold text-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Hardware Bottleneck Analysis</h5>
+                <p class="small opacity-75 mb-3">The 19.81% failure rate in Phase 2 was a result of reaching 100% hardware utility, not software instability alone:</p>
+                <div class="row g-3 small">
+                    <div class="col-md-4">
+                        <p class="mb-1 fw-bold text-info">VRAM Saturation</p>
+                        <p class="opacity-75">Analysis of 7 frames/video via Micicpm-v exhausted the 12GB VRAM buffer, causing processing timeouts at 780+ req/s.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 fw-bold text-info">GIL & Threading</p>
+                        <p class="opacity-75">Python's Global Interpreter Lock (GIL) reached context-switching limits, throttling Gunicorn worker efficiency.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1 fw-bold text-info">I/O Wait</p>
+                        <p class="opacity-75">SATA SSD I/O and PostgreSQL socket availability hit hardware caps simultaneously under extreme task weighting.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm p-4 rounded-4 bg-white">
+                <h4 class="fw-bold mb-3"><i class="fas fa-microchip text-primary me-2"></i>Data Architecture</h4>
+                <div class="bg-light p-3 rounded-3 h-100">
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i><strong>SQLAlchemy ORM:</strong> Parameterized queries block SQL Injection.</li>
+                        <li class="mb-2"><i class="fas fa-random text-primary me-2"></i><strong>Algorithmic Sorting:</strong> Custom weighted logic for content feeds.</li>
+                        <li><i class="fas fa-shield-virus text-danger me-2"></i><strong>XSS Protection:</strong> Global context-aware auto-escaping.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm p-4 rounded-4 bg-white">
+                <h4 class="fw-bold mb-3"><i class="fas fa-user-shield text-danger me-2"></i>Defensive Layer</h4>
+                <div class="bg-light p-3 rounded-3 h-100">
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2"><i class="fas fa-bolt text-warning me-2"></i><strong>SocketIO:</strong> Real-time asynchronous processing updates.</li>
+                        <li class="mb-2"><i class="fas fa-stopwatch text-primary me-2"></i><strong>Rate Limiting:</strong> IP-based throttling (50 req/min).</li>
+                        <li><i class="fas fa-key text-primary me-2"></i><strong>CSRF Integrity:</strong> Token-based verification for all POST/PUT actions.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 rounded-4 text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <h4 class="fw-bold mb-4 text-info"><i class="fas fa-brain me-2"></i>AI Multimodal Pipeline</h4>
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <div class="p-3 border border-secondary rounded-4 h-100">
+                    <h1 class="fw-bold mb-1">07</h1>
+                    <small class="text-info text-uppercase fw-bold">Frames / Vid</small>
+                    <p class="x-small opacity-75 mt-2">Interval visual capture for summary context.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border border-secondary rounded-4 h-100">
+                    <i class="fas fa-closed-captioning fa-2x mb-2 text-info"></i>
+                    <h6 class="fw-bold">Whisper V3 Turbo</h6>
+                    <p class="x-small opacity-75">Neural-speed caption extraction.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border border-secondary rounded-4 h-100">
+                    <i class="fas fa-robot fa-2x mb-2 text-info"></i>
+                    <h6 class="fw-bold">Ollama AI</h6>
+                    <p class="x-small opacity-75">Micicpm-v multimodal chat integration.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border border-secondary rounded-4 h-100">
+                    <i class="fas fa-file-code fa-2x mb-2 text-info"></i>
+                    <h6 class="fw-bold">Base64 Encoded</h6>
+                    <p class="x-small opacity-75">Secure image-to-text transmission.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <h5 class="fw-bold">Security Inquiry</h5>
+        <p class="text-muted small">Reference IP: <code>{{ request.remote_addr }}</code></p>
+        <a href="mailto:{{g.myemail}}?subject=Security%20Inquiry:%20Studio%20v2&body=Reference%20IP:%20{{ request.remote_addr }}" 
+           class="btn btn-primary rounded-pill px-5 py-3 shadow-lg animate-hover">
+            <i class="fas fa-paper-plane me-2"></i>Contact Developer at {{g.myemail}}
+        </a>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('locustChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Channel View', 'View Video', 'Home Page', 'Settings', 'Community'],
+                datasets: [{
+                    label: 'Peak Load (Req/s)',
+                    data: [313.30, 226.70, 157.00, 55.60, 31.30],
+                    backgroundColor: ['#1266f1', '#f93154', '#475569', '#39c0ed', '#00b74a'],
+                    borderRadius: 10,
+                    barThickness: 25
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, grid: { display: false } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>
+
+<style nonce="{{ csp_nonce() }}">
+    .animate-hover { transition: all 0.3s ease; }
+    .animate-hover:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(18, 102, 241, 0.3) !important; }
+    .bg-light { background-color: #f8fafc !important; }
+    .rounded-4 { border-radius: 1.25rem !important; }
+    .x-small { font-size: 0.7rem; }
+    .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.06); }
+    .letter-spacing-1 { letter-spacing: 1.5px; }
+</style>
+{% endblock body %}

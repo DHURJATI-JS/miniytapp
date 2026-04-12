@@ -1,0 +1,1257 @@
+{% extends 'base.html' %}
+{% from 'share_base.html' import sb with context %}
+
+{% if vid %}
+{% block title %}Watch: {{ vid.name }}{% endblock title %}
+
+{% block body %}
+{{ sb(v_count, l_count,vid, g.tpath, me, showedit=me,shownormal=False) }}
+
+<div class="py-4 px-3 rounded mb-5" style="min-height: 100vh;">
+    <div class="container" style="max-width: 1500px;">
+        <div class="row">
+            <style nonce="{{ csp_nonce() }}">
+                   .video-container {
+  width: 100%; 
+  aspect-ratio: 16 / 9;
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: 
+}    
+            </style>
+     
+            <div class="col-12">
+                <div class="card video-container shadow-5-strong bg-black mb-4 overflow-hidden" style="border-radius: 16px;">
+                    <video id="video-player" crossorigin="anonymous" class="w-100" controls poster="/{{g.tpath}}/{{vid.thumbnail}}">
+                        <source src="/{{g.vpath}}/{{vid.file}}" type="video/mp4">
+                        <track 
+        label="Auto" 
+        kind="subtitles" 
+        srclang="en" 
+        src="{{ url_for('static', filename='captions/' ) }}/{{vid.file}}.vtt" 
+        >
+                    </video>
+                </div>
+
+                <div class="px-2">
+                    <h3 class="fw-bold mb-3 text-break">{{vid.name}}</h3>
+
+<div class="d-flex flex-wrap align-items-center gap-3 border-bottom pb-4 mb-4 w-100">
+    <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
+        <img src="/{{g.logopath}}/{{vid.parent_channel.channelicon}}" 
+             class="rounded-circle shadow-1-soft me-3 flex-shrink-0" 
+             style="width: 52px; height: 52px; object-fit: cover;">
+        
+        {% if me %}
+            <div class="d-flex flex-column" style="min-width: 0;">
+                <a href="{{url_for('channelbp.viewchannel',id=vid.parent_channel.id)}}" class="text-decoration-none">
+                    <h6 class="mb-0 fw-bold text-break">{{vid.parent_channel.channelname}}</h6>
+                </a>                <small class="text-muted">{{subs|compact}} subscribers</small>
+
+                <button class="btn btn-dark btn-rounded btn-sm mt-1 fw-bold" style="width: fit-content;" data-mdb-ripple-init onclick="location.href='{{url_for('channelbp.viewchannel',id=vid.parent_channel.id)}}'">
+                    View channel
+                </button>
+            </div>
+        {% else %}
+            <div style="min-width: 0;">
+                <a href="{{url_for('channelbp.viewchannel',id=vid.parent_channel.id)}}" class="text-decoration-none">
+                    <h6 class="mb-0 fw-bold text-break">{{vid.parent_channel.channelname}}</h6>
+                </a>
+                <small class="text-muted">{{subs|compact}} subscribers</small>
+            </div>
+            
+            {% if session.get('login') %}
+                <form action="{{ url_for('channelbp.unsubchannel' if ifsub else 'channelbp.subchannel', id=vid.parent_channel.id) }}" method="post" class="ms-sm-4 mt-2 mt-sm-0">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn {{ 'btn-primary' if ifsub else 'btn-danger' }} btn-rounded px-4 fw-bold" data-mdb-ripple-init>
+                        {{ 'Unsubscribe' if ifsub else 'Subscribe' }}
+                    </button>
+                </form>
+                {% else %}
+                <button type="button" onclick="location.href='{{url_for('authbp.login')}}'" class="ms-sm-4 mt-2 mt-sm-0 btn btn-danger btn-rounded px-4 fw-bold" data-mdb-ripple-init>
+                       Subscribe
+                    </button>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<style nonce="{{ csp_nonce() }}">
+    /* --- Acoustic Action Bar --- */
+    .action-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+    }
+
+    /* Primary & Like Active Buttons */
+    .btn-acoustic-primary {
+        background: linear-gradient(45deg, #1266f1, #00b7ff) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(18, 102, 241, 0.2) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-acoustic-primary:hover {
+        box-shadow: 0 8px 25px rgba(18, 102, 241, 0.35) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Utility / Light Buttons */
+    .btn-acoustic-light {
+        background: rgba(18, 102, 241, 0.05) !important;
+        color: #1266f1 !important;
+        border: 1px solid rgba(18, 102, 241, 0.1) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .btn-acoustic-light:hover:not(:disabled) {
+        background: #1266f1 !important;
+        color: #fff !important;
+        border-color: #1266f1 !important;
+    }
+
+    /* Floating / Round Utility Buttons */
+    .btn-util-round {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px !important; /* Modern squircle */
+        background: rgba(0, 0, 0, 0.04) !important;
+        color: #475569 !important;
+        border: none !important;
+        transition: all 0.25s ease !important;
+    }
+
+    .btn-util-round:hover:not(:disabled) {
+        background: rgba(18, 102, 241, 0.1) !important;
+        color: #1266f1 !important;
+        transform: scale(1.05) rotate(5deg);
+    }
+
+    /* Special AI / Sidebar Buttons */
+    .btn-nebula {
+        background: #fff !important;
+        border: 1.5px solid #1266f1 !important;
+        color: #1266f1 !important;
+        font-weight: 700 !important;
+    }
+
+    .btn-nebula:hover {
+        background: #1266f1 !important;
+        color: #fff !important;
+    }
+
+    .btn-ai-sparkle {
+        background: #fdf2ff !important;
+        border: 1px solid #dcb5ff !important;
+        color: #b23cfd !important;
+    }
+
+    .btn-ai-sparkle:hover:not(.disabled) {
+        background: #b23cfd !important;
+        color: #fff !important;
+    }
+
+    .btn-ai-sparkle:hover:not(.disabled) i {
+        color: #fff !important;
+    }
+</style>
+
+<div class="action-container mb-3">
+    {% if session.get('login') %}
+        {% if liked %}
+            <form action="{{ url_for('videobp.unlike', id=vid.id) if me!=True else None }}" method="POST" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-acoustic-primary btn-rounded fw-bold px-4" data-mdb-ripple-init>
+                    <i class="fas fa-thumbs-up me-2"></i>{{ l_count|compact }}
+                </button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('videobp.like', id=vid.id) if me!=True else None }}" method="POST" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-acoustic-light btn-rounded fw-bold px-4" data-mdb-ripple-init {% if me %}disabled{% endif %}>
+                    <i class="far fa-thumbs-up me-2"></i>{{ l_count|compact }}
+                </button>
+            </form>
+        {% endif %}
+    {% else %}
+        <button class="btn btn-acoustic-light btn-rounded fw-bold px-4" data-mdb-ripple-init onclick="location.href='/login'">
+            <i class="far fa-thumbs-up me-2"></i>{{ l_count|compact }}
+        </button>
+    {% endif %}
+
+    <button class="btn btn-util-round" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#sharevid{{vid.id}}" title="Share">
+        <i class="fas fa-share"></i>
+    </button>
+    
+    <button class="btn btn-util-round" onclick="window.open('/{{g.vpath}}/{{vid.file}}')" data-mdb-ripple-init title="Download">
+        <i class="fas fa-download"></i>
+    </button>
+
+    {% if session.get('login') %}
+        <button class="btn btn-util-round ms-1" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#addtoplaylist" title="Add to Playlist">
+            <i class="fas fa-plus"></i>
+        </button>
+        {% if me %}
+        <button class="btn btn-util-round ms-1" style="background: rgba(0,0,0,0.05) !important;" data-mdb-ripple-init onclick="location.href='/edit_video/{{vid.id}}'" title="Edit Video">
+            <i class="fas fa-pen"></i>
+        </button>
+        {% endif %}
+    {% endif %}
+
+    <button class="btn btn-nebula rounded-pill shadow-0 px-4" id="open-nebula-sidebar">
+        <i class="fas fa-chart-bar me-2"></i> Similar
+    </button>
+
+    <span data-bs-toggle="tooltip" data-bs-placement="bottom" 
+          title="{% if not g.ai or not vid.aisummary %} AI is not available {% endif %}">
+        <button  id="ai-toggle-btn" 
+                class="btn btn-ai-sparkle btn-rounded fw-bold ms-1 {% if not vid.aisummary or not g.ai %} disabled {% endif %}" 
+                {% if g.ai %} data-mdb-ripple-init {% endif %}>  
+            <i class="fas fa-wand-magic-sparkles me-2"></i> Ask {{g.appname}} BOT
+        </button>
+    </span>
+
+    {% if session.get('login') and not g.user.id == vid.parent_channel.user_id %}
+    <button onclick="location.href='{{url_for('reportbp.report',id=vid.parent_channel.user_id)}}'" 
+            class="btn btn-util-round btn-floating ms-auto" style="color: #f93154 !important;" data-mdb-ripple-init title="Report">
+        <i class="fas fa-flag"></i>
+    </button>  
+    {% endif %}
+</div>
+                    </div>
+
+                    <div class="card shadow-0 p-4 mb-5" style="background-color: rgba(0,0,0,0.05); border-radius: 12px;">
+                        <div class="fw-bold small mb-2"><span id="viewivid">{{ v_count }}</span>  views &bull; {{ vid.created.strftime('%b %d, %Y') if vid.created.strftime else vid.created  }} 
+                            <form action="/" method="post">
+                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="category" value="{{ vid.category }}"/>
+                                <input type="hidden" name="sort_by" value="created"/>
+                                <input type="hidden" name="order" value="desc"/>
+
+               <button class="btn btn-rounded btn-outine-light my-2" type="submit">{{vid.category}}</button>  
+                        
+                        </form>
+                        
+                        </div>
+                        <p class="mb-0 small  text-break" style="white-space: pre-wrap;">{{vid.description|cleansafe}}</p>
+                        
+ 
+                    </div>
+
+                    <hr class="my-5">
+
+                <style nonce="{{ csp_nonce() }}">
+    /* --- Acoustic Comments System --- */
+    .comments-section {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
+        transition: all 0.3s ease;
+    }
+
+    /* Comment Input Area */
+    #commentArea {
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #f8fafc;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        padding: 12px 16px;
+    }
+
+    #commentArea:focus {
+        background: #fff;
+        border-color: #1266f1;
+        box-shadow: 0 0 0 4px rgba(18, 102, 241, 0.1);
+    }
+
+    /* Comment Item Card */
+    .comment-item {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+        animation: fadeInComment 0.4s ease forwards;
+    }
+
+    .comment-item:hover {
+        background: #fff !important;
+        border-color: rgba(18, 102, 241, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        transform: translateX(4px);
+    }
+
+    /* Custom Filter Select */
+    #commentSort {
+        cursor: pointer;
+        background-color: transparent;
+        color: #475569;
+    }
+
+    /* Reply Section Styling */
+    .replies-section .collapse {
+        border-left: 2px solid rgba(18, 102, 241, 0.1) !important;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .reply-item {
+        padding: 8px;
+        border-radius: 12px;
+        transition: background 0.2s ease;
+    }
+
+    .reply-item:hover {
+        background: rgba(18, 102, 241, 0.02);
+    }
+
+    /* Small Utility Text */
+    .tiny-date {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    /* Animation */
+    @keyframes fadeInComment {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn-reply-link {
+        font-size: 0.75rem !important;
+        color: #64748b !important;
+        transition: color 0.2s ease;
+    }
+
+    .btn-reply-link:hover {
+        color: #1266f1 !important;
+    }
+</style>
+<script nonce="{{ csp_nonce() }}">
+
+const updateCommentCounter = () => {
+    const counterDisplay = document.getElementById('commentcounter');
+    if (!counterDisplay) return;
+
+    const totalComments = document.querySelectorAll('.comment-item').length;
+    
+    counterDisplay.textContent = totalComments;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateCommentCounter();
+
+    const commentList = document.getElementById('commentList');
+    if (commentList) {
+        const observer = new MutationObserver(updateCommentCounter);
+        observer.observe(commentList, { 
+            childList: true, 
+            subtree: false 
+        });
+    }
+});
+</script>
+<div class="comments-section mb-5 px-3 py-4">
+    <h5 class="fw-bold mb-4 d-flex align-items-center">
+        Comments<span class="badge badge-primary ms-2 rounded-pill" id="commentcounter" style="font-size: 0.7rem;"></span>
+    </h5>
+
+    {% set jj = vid.comments|length %}
+    {% set comments = vid.comments %}
+    
+    {% if session.get('login') %}
+        {% if not jj >= maxcomments %}
+        <div class="d-flex mb-4">
+            <img src="{{session.get('photo')}}" class="rounded-circle me-3 shadow-sm" style="width: 44px; height: 44px; object-fit: cover; border: 2px solid #fff;">
+            <form action="{{url_for('videobp.addcomment',id=vid.id)}}" method="POST" class="w-100">
+               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="mb-2">
+                    <textarea class="form-control" name="comment" id="commentArea" required minlength="10" maxlength="300" rows="2" placeholder="Add a comment..."></textarea>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-rounded fw-bold px-4 shadow-0" data-mdb-ripple-init>Post Comment</button>
+                </div>
+            </form>
+        </div>       
+        {% else %}
+        <div class="alert alert-info border-0 shadow-0 rounded-4 px-4 py-3 mb-4" style="background: rgba(18, 102, 241, 0.05);">
+            <div class="d-flex align-items-center text-primary">
+                <i class="fas fa-comment-slash me-3"></i>
+                <div class="small fw-bold">Comment limit reached for this video.</div>
+            </div>
+        </div>                
+        {% endif %}
+    {% else %}
+    <div class="alert border-0 shadow-0 rounded-4 px-4 py-3 mb-4" style="background: #f8fafc;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-lock me-3 text-muted"></i>
+            <div class="small fw-bold text-muted">Please <a href="{{url_for('authbp.login')}}" class="text-primary">Login</a> to join the conversation.</div>
+        </div>
+    </div>  
+    {% endif %}
+
+    {% if comments %}
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
+        <div class="d-flex align-items-center bg-white border rounded-pill px-3 py-1 shadow-sm">
+            <i class="fas fa-sort-amount-down text-muted me-2" style="font-size: 0.75rem;"></i>
+            <select id="commentSort" class="form-select border-0 shadow-0 small fw-bold py-0" onchange="sortComments()" style="height: 28px;">
+                {% if user_has_commented and session.get('login') and g.user %}
+                    <option value="my_first" selected>Relevant to me</option>
+                {% endif %} 
+                <option value="newest" {% if sc!=True %}selected{% endif %}>Newest</option>
+                <option value="oldest">Oldest</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="commentList">
+        {% set ns = namespace(value=0) %}
+        {% for comment in comments %}
+        {% if not comment.owner.permanentdisabled %}
+            {% set ns.value = ns.value + 1 %}                       
+            <div  data-date="{{ comment.created.isoformat() }}" 
+                 data-me="{% if session.get('login') and g.user.id == comment.owner.id %}1{% else %}0{% endif %}" 
+                 class="comment-item counthisocmment d-flex mb-3 p-3 rounded-4">
+                
+                <a href="{{url_for('viewprofile', userid=comment.owner.id)}}">
+                    <img src="/{{g.logopath}}/{{comment.owner.profilephoto}}" 
+                         class="rounded-circle me-3 border shadow-sm" 
+                         style="width: 40px; height: 40px; object-fit: cover; background: #fff;">
+                </a>
+
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                        <a href="{{url_for('viewprofile',userid=comment.owner.id)}}" class="text-dark text-decoration-none">
+                            <h6 class="fw-bold small mb-0 me-2">@{{ comment.owner.name }}</h6>
+                        </a>
+                        <span class="tiny-date">{{ comment.created.strftime('%b %d, %Y') if comment.created.strftime else comment.created }}</span>
+                    </div>
+
+                    <p class="small mb-2 text-dark text-break" style="line-height: 1.5; opacity: 0.9;">{{ comment.content }}</p>
+
+                    <div class="d-flex align-items-center gap-3">
+                        {% if session.get('login') %}
+                            {% set active_replies = comment.replieswithincomment %}
+                            {% if not active_replies|length >= maxinnercomments %}
+                                <button type="button" class="btn btn-link p-0 btn-reply-link fw-bold text-decoration-none" 
+                                        onclick="document.getElementById('reply-form-{{comment.id}}').classList.toggle('d-none')">
+                                    <i class="fas fa-reply-all me-1"></i> Reply
+                                </button>
+                            {% endif %}
+
+                            {% set unrealreplies = active_replies|selectattr('owner.permanentdisabled', 'equalto', false) | list %}
+                            
+                            {% if g.user and g.user.id == comment.owner.id %}
+                                <form action="{{ url_for('videobp.delcomment', id=comment.id) }}" method="POST" class="m-0">
+                                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-link p-0 text-danger fw-bold small text-decoration-none" style="font-size: 0.75rem;">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if session.get('login') and not g.user.id == comment.owner.id %}
+                                <button type="button" onclick="location.href='{{url_for('reportbp.report',id=comment.owner.id)}}'" class="btn btn-link p-0 text-muted fw-bold small text-decoration-none" style="font-size: 0.75rem;">
+                                    <i class="fas fa-flag me-1"></i> Report
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div id="reply-form-{{comment.id}}" class="d-none mt-3 mb-3 bg-light p-3 rounded-4">
+                        <form action="{{ url_for('videobp.addinnercomment', id=comment.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <textarea name="content" class="form-control border-0 shadow-0 mb-2" rows="2" required minlength="10" maxlength="300" placeholder="Write a public reply..." style="background: transparent;"></textarea>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-light btn-sm btn-rounded fw-bold shadow-0" onclick="document.getElementById('reply-form-{{comment.id}}').classList.add('d-none')">Cancel</button>
+                                <button type="submit" class="btn btn-primary btn-sm btn-rounded fw-bold shadow-0">Reply</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {% if unrealreplies|length > 0 %}
+                    <div class="replies-section mt-2">
+                        <button class="btn btn-link p-0 text-primary fw-bold small text-decoration-none mb-1" 
+                                type="button" data-mdb-collapse-init data-mdb-target="#replies-{{comment.id}}">
+                            <i class="fas fa-comments me-1"></i> View replies
+                        </button>
+
+                        <div class="collapse ms-2 ps-3" id="replies-{{comment.id}}">
+                            {% for reply in unrealreplies %}
+                            <div class="d-flex mt-3 reply-item">
+                                <a href="{{url_for('viewprofile',userid=reply.owner.id)}}"> 
+                                    <img src="/{{g.logopath}}/{{reply.owner.profilephoto}}" 
+                                         class="rounded-circle me-2 border shadow-sm" 
+                                         style="width: 30px; height: 30px; object-fit: cover; background: #fff;">
+                                </a>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center">
+                                        <a class="text-dark text-decoration-none" href="{{url_for('viewprofile', userid=reply.owner.id)}}">
+                                            <h6 class="fw-bold mb-0 me-2" style="font-size: 0.75rem;">@{{ reply.owner.name }}</h6>
+                                        </a> 
+                                        <span class="tiny-date">{{ reply.created.strftime('%b %d') }}</span>
+                                    </div>
+                                    <p class="small mb-1 text-dark text-break" style="opacity: 0.8;">{{ reply.content }}</p>
+                                    
+                                    <div class="d-flex gap-2">
+                                        {% if session.get('login') and g.user.id == reply.owner.id %}
+                                        <form action="{{ url_for('videobp.removeinnercomment', id=reply.id) }}" method="POST" class="m-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-link p-0 text-danger fw-bold" style="font-size: 0.65rem; text-decoration: none;">Delete</button>
+                                        </form>
+                                        {% endif %}
+                                        {% if session.get('login') and not g.user.id == reply.owner.id %}
+                                        <button onclick="location.href='{{url_for('reportbp.report',id=reply.owner.id)}}'" class="btn btn-link p-0 text-muted fw-bold" style="font-size: 0.65rem; text-decoration: none;">Report</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+                                {% endif %}
+
+        {% endfor %}
+
+        {% if not ns.value %}
+        <div class="text-center py-5">
+            <i class="fas fa-comments fa-3x text-muted opacity-25 mb-3"></i>
+            <p class="text-muted small">No comments yet. Start the conversation!</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function sortComments() {
+    const list = document.getElementById('commentList');
+    if(!list) return;
+    const items = Array.from(list.getElementsByClassName('comment-item'));
+    const criteria = document.getElementById('commentSort').value;
+
+    items.sort((a, b) => {
+        if (criteria === 'my_first') {
+            const isMeA = parseInt(a.getAttribute('data-me'));
+            const isMeB = parseInt(b.getAttribute('data-me'));
+            if (isMeA !== isMeB) return isMeB - isMeA; 
+            return new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date'));
+        }
+        const dateA = new Date(a.getAttribute('data-date'));
+        const dateB = new Date(b.getAttribute('data-date'));
+        return criteria === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    items.forEach(item => {
+        item.style.animation = 'none';
+        item.offsetHeight; 
+        item.style.animation = null;
+        list.appendChild(item);
+    });
+}
+</script>
+                </div>
+            </div>
+
+        </div>
+</div><script nonce="{{ csp_nonce() }}">
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const video = document.getElementById('video-player');
+    const videoId = "{{ vid.id }}"; 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    let sentMilestones = { 25: false, 50: false, 75: false, 100: false };
+    let actualSecondsWatched = 0;
+    let lastPosition = 0;
+
+    const sendIncrement = async (seconds) => {
+        try{
+             const exists = await fetch(`/video-check/${videoId}/{{vid.token}}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': csrfToken 
+            },
+            
+        }
+        
+    );if (!exists.ok){
+            window.location.href = '{{url_for("videobp.viderr",err="video")}}';
+
+        }
+        
+
+        } catch(err){}
+         try {
+        const response = await fetch(`/add-views/${videoId}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': csrfToken 
+            },
+            body: JSON.stringify({ increment: seconds }) 
+        });
+           
+        if (response.ok) {
+            const viewElement = document.getElementById('viewivid');
+            let currentViews = parseInt(viewElement.innerText) || 0;
+                viewElement.innerText = currentViews + 1;
+                viewLogged = true; 
+            
+        }
+    } catch (err) {
+    }
+};
+    
+   
+    
+    video.addEventListener('timeupdate', function() {
+        if (!video.duration || video.paused) return;
+
+        const delta = video.currentTime - lastPosition;
+
+        if (delta > 0 && delta < 1.5) {
+            actualSecondsWatched += delta;
+        }
+        
+        lastPosition = video.currentTime;
+
+        const actualProgress = (actualSecondsWatched / video.duration) * 100;
+        
+        [25, 50, 75].forEach(milestone => {
+            if (actualProgress >= milestone && !sentMilestones[milestone]) {
+                sentMilestones[milestone] = true;
+                sendIncrement(video.duration / 4); 
+            }
+        });
+    });
+
+    video.addEventListener('ended', function() {
+        const actualProgress = (actualSecondsWatched / video.duration) * 100;
+        if (actualProgress >= 95 && !sentMilestones[100]) {
+            sentMilestones[100] = true;
+            sendIncrement(video.duration / 4);
+        }
+        actualSecondsWatched = 0;
+        sentMilestones = { 25: false, 50: false, 75: false, 100: false };
+    });
+
+    video.addEventListener('seeking', () => {
+        lastPosition = video.currentTime;
+    });
+});
+</script>
+<style nonce="{{ csp_nonce() }}">
+    .hover-shadow-soft:hover { background-color: rgba(0,0,0,0.02); }
+</style>
+{% if session.get('login') %}
+<div class="modal fade" id="addtoplaylist" tabindex="-1" aria-labelledby="addLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable channel-edit-suite">
+        <div class="modal-content shadow-lg border-0" style="border-radius: 22px;">
+            
+            <div class="modal-header border-0 pt-4 px-4 pb-2">
+                <h5 class="modal-title fw-bold" id="addLabel">
+                    <i class="fas fa-folder-plus me-2 text-primary"></i>Save Video to Playlist
+                </h5>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4 px-1">Select a playlist from your collection to add this video.</p>
+
+                <form action="{{ url_for('playlistbp.appendtoplaylist') }}" method="POST" id="playlistSelectionForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="vid_id" id="vidid" value="{{ vid.id }}">
+                    <input type="hidden" name="playlist_id" id="selected_playlist_id" value="">
+
+                    <div class="playlist-list-container">
+                        {% if user_playlists %}
+                            {% for p in user_playlists %}
+                            
+                                
+                            
+                            <div class="playlist-select-item p-3 mb-3 border rounded-4 d-flex align-items-center transition-all" id="item-{{ p.id }}">
+                                <div class="me-3" style="width: 100px; aspect-ratio: 16/9; overflow: hidden; border-radius: 10px;">
+                                    <img src="{{ url_for('static', filename='bannerimage/' + (p.thumbnail or 'defbanner.jpg')) }}" 
+                                         class="w-100 h-100" style="object-fit: cover;">
+                                </div>
+
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <a href="{{url_for('playlistbp.viewthatplaylist',id=p.id)}}"><h6 class="fw-bold mb-1 text-truncate">{{ p.name }}</h6>
+                                    <p class="text-muted mb-0 small text-truncate">{{ p.description or 'No description' }}</p></a>
+                                </div> {% if p not in alr_add %}
+
+                                <button  type="button" 
+                                        class="btn  btn-outline-primary  btn-rounded btn-sm fw-bold px-3 ms-3 select-playlist-btn" 
+                                        data-id="{{ p.id }}"
+                                    > Select
+                                </button>
+                                {% else %}
+                                 <button  type="button" 
+                                        class="btn  btn-outline-danger btn-rounded btn-sm delete-playlist-btn fw-bold px-3 ms-3 " 
+                                        data-id="{{ p.id }}">
+                                     Remove
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                                <h6 class="fw-bold text-muted">Not  found</h6>
+                                <p class="small text-muted">You haven't created any playlists yet.</p>
+                                <button type="button" class="btn btn-primary btn-sm btn-rounded mt-2" onclick="location.href='{{url_for('playlistbp.viewplaylists')}}?saveplaylist'">
+                                    Create New Playlist
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-link text-muted fw-bold shadow-0" data-mdb-dismiss="modal">Cancel</button>
+                <button type="submit" form="playlistSelectionForm" id="finalAddBtn" class="btn btn-primary btn-rounded px-5 fw-bold shadow-0" disabled>
+                    Add to Playlist
+                </button>
+            </div>
+        </div>
+    </div>
+</div><script>
+    
+document.addEventListener('DOMContentLoaded', function() {
+    const theForm = document.getElementById('playlistSelectionForm');
+    const idInput = document.getElementById('selected_playlist_id');
+
+    document.querySelectorAll('.select-playlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const pid = this.getAttribute('data-id');
+            idInput.value = pid;
+            theForm.action = "{{ url_for('playlistbp.appendtoplaylist') }}";
+        });
+    });
+
+    document.querySelectorAll('.delete-playlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const pid = this.getAttribute('data-id');
+            idInput.value = pid;
+            const baseUrl = "{{ url_for('playlistbp.delvideofromplist', id=0) }}";
+    const finalUrl = baseUrl.replace('0', pid)
+            theForm.action = finalUrl;
+            theForm.submit();
+        });
+    });
+});
+</script>
+{% endif %}
+<style nonce="{{ csp_nonce() }}">
+    .playlist-select-item { transition: 0.2s; background: #fff; }
+    .playlist-select-item.active-selection { 
+        border-color: #1266f1 !important; 
+        background: #f0f7ff; 
+        box-shadow: 0 4px 12px rgba(18, 102, 241, 0.1); 
+    }
+    .transition-all { transition: all 0.3s ease; }
+</style>
+
+<script nonce="{{ csp_nonce() }}">
+document.querySelectorAll('.select-playlist-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const playlistId = this.getAttribute('data-id');
+        
+        document.getElementById('selected_playlist_id').value = playlistId;
+
+        document.querySelectorAll('.playlist-select-item').forEach(item => {
+            item.classList.remove('active-selection');
+        });
+        document.getElementById('item-' + playlistId).classList.add('active-selection');
+
+        document.querySelectorAll('.select-playlist-btn').forEach(b => {
+            b.innerText = 'Select';
+            b.classList.replace('btn-primary', 'btn-outline-primary');
+        });
+        this.innerText = 'Selected';
+        this.classList.replace('btn-outline-primary', 'btn-primary');
+
+        document.getElementById('finalAddBtn').disabled = false;
+    });
+});
+</script>
+<script nonce="{{ csp_nonce() }}">
+    document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const triggerModal = urlParams.get('show_playlist');
+
+    if (triggerModal === 'true') {
+        const modalElement = document.getElementById('addtoplaylist');
+        
+        if (modalElement) {
+            const modalInstance = new mdb.Modal(modalElement);
+            modalInstance.show();
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+});
+</script>
+
+
+
+{% if recommended_videos %}
+                {% for v_count, l_count, thatvid in recommended_videos %}     
+                 {{ sb(v_count, l_count,thatvid, g.tpath, me, showedit=me,shownormal=False) }}
+          {% endfor %}
+            {% endif %}
+<aside id="nebula-sidebar" class="nebula-tray">
+    <div class="d-flex flex-column h-100 nova-glass-container">
+        
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">Recommended Videos</h6>
+            <button type="button" class="btn btn-link btn-floating text-reset m-0" id="close-nebula-btn">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto p-2" style="scrollbar-width: thin;">
+            {% if recommended_videos %}
+                {% for v_count, l_count,thatvid in recommended_videos %}
+                <div class="nova-video-card mb-3">
+                    <div class="position-relative">
+                        <a href="{{ url_for('videobp.viewvid', id=thatvid.id) }}">
+                            <img src="/{{g.tpath}}/{{thatvid.thumbnail}}" class="img-fluid rounded-3 shadow-sm w-100" alt="thumbnail" style="aspect-ratio: 16/9; object-fit: cover;">
+                        </a>
+                        
+                        <div class="nova-category-tag">
+                            {{ thatvid.category }}
+                        </div>
+
+                        <a href="{{ url_for('videobp.viewvid', id=thatvid.id) }}?show_playlist=true" class="nova-save-action">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>
+
+                    <div class="mt-2 px-1">
+    <div class="d-flex justify-content-between align-items-start">
+        <a href="{{ url_for('videobp.viewvid', id=thatvid.id) }}" class="text-decoration-none text-dark flex-grow-1" style="min-width: 0;">
+            <h6 class="nova-title nova-title-truncate mb-1">{{ thatvid.name }}</h6>
+        </a>
+        <button class="btn btn-link btn-floating btn-sm text-muted p-0 ms-2" data-mdb-modal-init data-mdb-target="#sharevid{{thatvid.id}}">
+            <i class="fas fa-share-alt"></i>
+        </button>
+    </div>
+    
+    <div class="nova-meta text-muted">
+        <a href="{{ url_for('channelbp.viewchannel', id=thatvid.parent_channel.id) }}" 
+           class="text-decoration-none d-block fw-bold text-primary mb-1 nova-channel-link text-truncate">
+            <small class="me-1">@</small>{{ thatvid.parent_channel.channelname }}
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <span><i class="far fa-eye me-1"></i>{{ v_count }}</span>
+            <span><i class="far fa-heart me-1"></i>{{ l_count }}</span>
+        </div>
+        
+        <p class="nova-desc nova-desc-truncate mt-1">{{ thatvid.description }}</p>
+        
+        <small class="d-block mt-1 opacity-75">{{ thatvid.created.strftime('%b %d, %Y') }}</small>
+    </div>
+</div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-4">
+            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-inner" style="width: 70px; height: 70px; background: rgba(0,0,0,0.03) !important;">
+                <i class="fas fa-ghost fa-2xl text-muted opacity-50"></i>
+            </div>
+            <h6 class="fw-bold text-dark">No videos found...</h6>
+            <p class="small text-muted">We couldn't find any videos matching this video right now.</p>    
+        </div>
+                {% endif %}
+        </div>
+    </div>
+</aside>
+<script nonce="{{ csp_nonce() }}">
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('nebula-sidebar');
+    const toggleBtn = document.getElementById('open-nebula-sidebar'); 
+    const closeBtn = document.getElementById('close-nebula-btn');
+
+    if(toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+    if(closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            sidebar.classList.remove('active');
+        });
+    }
+});
+</script>
+<aside id="ai-sidebar" class="aero-sidebar">
+    <div class="d-flex flex-column h-100 aero-inner-container">
+        
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary rounded-3 d-flex align-items-center justify-content-center shadow-1-strong" style="width: 35px; height: 35px;">
+<i class="fas fa-wand-magic-sparkles text-light"></i>
+                </div>
+                <div class="ms-3">
+                    <h6 class="mb-0 fw-bold text-dark me-3" style="letter-spacing: -0.5px; font-size: 0.9rem;">{{g.appname}} <span class="text-primary">AI</span></h6>
+                    
+                    <span id="prompt-counter" class="badge rounded-pill badge-light text-primary border border-primary-soft" style="font-size: 0.6rem;">
+                         {% if session.get('login') %}
+                        {{g.ailimit}} Prompts Remaining{% else %} Not loggedin
+                     {% endif %} 
+                    </span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-link btn-floating text-reset m-0" id="close-ai-btn">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+
+        <div class="py-2 px-3 border-bottom" style="background: rgba(0,0,0,0.03);">
+            <p class="mb-0 text-muted" style="font-size: 0.65rem;">
+                <i class="fas fa-info-circle text-primary me-1"></i>
+                 <strong>AI remembers only the last message. Ai can make mistakes!</strong>.
+            </p>
+        </div>
+  <div class="py-2 px-3 border-bottom" style="background: rgba(0,0,0,0.03);">
+            <p class="mb-0 text-muted" style="font-size: 0.65rem;">
+                <i class="fas fa-info-circle text-primary me-1"></i>
+                 <strong>Ai is trained to only answer questions which are related to the video</strong>.
+            </p>
+        </div>
+        <div id="ai-content-area" class="flex-grow-1 overflow-auto p-3" style="scrollbar-width: thin;">
+            <div class="mb-3">
+                <div class="aero-bubble">
+                    <span class="badge rounded-pill bg-primary-soft text-primary border" style="font-size: 0.6rem;">
+                Powered by ollama , faster-whisper and opencv
+            </span>
+                    <label class="aero-label">Ai analysis</label>
+                    <div class="text-dark small lh-base">{{aisummary}}</div>
+                </div>
+            </div>
+            <div id="chat-messages-container"></div>
+            <div id="ai-response-area"></div>
+        </div>
+
+        <div class="p-3 border-top">
+            <div class="input-group bg-white rounded-pill p-1 shadow-sm border">
+                 
+                <input type="text" maxlength="100" id="ai-user-query" {% if not session.get('login') %} disabled {% endif %} class="form-control border-0 bg-transparent shadow-none px-3" placeholder="{% if not session.get('login') %} Login to ask {% else %} Ask anything...{% endif %}" autocomplete="off">
+                <button  onclick="sendAiMessage()" id="msgbutton" class="{% if not session.get('login') %} disabled {% endif %} btn btn-primary btn-floating shadow-0 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+                
+            </div>
+        </div>
+    </div>
+</aside><style nonce="{{ csp_nonce() }}">
+.nebula-tray, .aero-sidebar {
+    position: fixed;
+    height: calc(100vh - 40px);
+    z-index: 1050; /* Lower than Bootstrap modals (1055+) */
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(20px) saturate(170%);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    
+    border-radius: 28px !important;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* --- NEBULA (LEFT SIDE: VIDEOS) --- */
+.nebula-tray {
+    top: 20px;
+    left: -400px; /* Hidden off-screen left */
+    width: 380px;
+}
+
+.nebula-tray.active {
+    transform: translateX(420px); /* Slides into view */
+}
+
+/* --- AERO (RIGHT SIDE: CHAT/STATUS) --- */
+.aero-sidebar {
+    top: 20px;
+    right: -400px; /* Hidden off-screen right */
+    width: 380px;
+}
+
+.aero-sidebar.active {
+    transform: translateX(-420px); /* Slides into view */
+}
+
+/* --- NOVA VIDEO CARDS (Inside Nebula) --- */
+.nova-video-card {
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 10px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+}
+
+.nova-video-card:hover {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(18, 102, 241, 0.2);
+    transform: translateY(-2px);
+}
+
+.nova-category-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px; /* Aligned Left as requested */
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    color: white;
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-weight: 800;
+    z-index: 5;
+}
+
+.nova-save-action {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: #1266f1;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(18, 102, 241, 0.3);
+    z-index: 10;
+}
+
+.nova-video-card:hover .nova-save-action {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* --- TEXT TRUNCATION UTILITIES --- */
+.nova-title-truncate {
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.nova-desc-truncate {
+    font-size: 0.7rem;
+    color: #555;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    margin-top: 4px;
+}
+
+/* --- AERO BUBBLES (Inside Aero) --- */
+.aero-bubble {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+}
+
+.d-flex.justify-content-end .aero-bubble {
+    background: #1266f1 !important;
+    color: white !important;
+    border: none;
+    border-bottom-right-radius: 4px;
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    .nebula-tray, .aero-sidebar {
+        top: 0;
+        height: 100vh;
+        width: 100%;
+        border-radius: 0 !important;
+    }
+    .nebula-tray { left: -100%; }
+    .nebula-tray.active { transform: translateX(100%); }
+    
+    .aero-sidebar { right: -100%; }
+    .aero-sidebar.active { transform: translateX(-100%); }
+}.aero-label {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #1266f1;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+</style>
+
+<script nonce="{{ csp_nonce() }}"> 
+let promptsRemaining = parseInt("{{g.ailimit}}");
+var lastpromptbyai=[];
+let old="";
+let aiTimeout;
+    const body = document.getElementById('ai-content-area');
+
+    const socket = io("{{request.host}}");
+  
+    const aiSidebar = document.getElementById('ai-sidebar');
+    const aiToggleBtn = document.getElementById('ai-toggle-btn');
+    const closeAiBtn = document.getElementById('close-ai-btn');
+    const subbutton = document.querySelector("#msgbutton")
+    function toggleAI() {
+        subbutton.disabled=false;
+        aiSidebar.classList.toggle('active');
+    }
+
+    aiToggleBtn.addEventListener('click', toggleAI);
+    closeAiBtn.addEventListener('click', toggleAI);
+    document.getElementById('ai-user-query').addEventListener("keydown", function(event) {
+  if (event.key === "Enter" && subbutton.disabled==false) {
+    event.preventDefault(); 
+    sendAiMessage();
+  };
+});
+function updateCounter() {
+    promptsRemaining--;
+    const counterEl = document.getElementById('prompt-counter');
+    counterEl.innerText = `${promptsRemaining} Prompts Remaining`;
+    
+    if (promptsRemaining <= 0) {
+        subbutton.disabled = true;
+        document.getElementById('ai-user-query').disabled = true;
+        document.getElementById('ai-user-query').value = "Limit reached for this session.";
+    };
+};
+    const queryInput = document.getElementById('ai-user-query');
+
+  function sendAiMessage() {
+
+    const query = queryInput.value;
+    if(!query) return;
+
+    const messagesContainer = document.getElementById('chat-messages-container');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'd-flex justify-content-end mb-3'; 
+    userMsg.innerHTML = `
+        <div class="aero-bubble my-2 text-truncate" style="background: #1266f1; color: white; border: none;">
+            ${query}
+        </div>
+    `;
+    messagesContainer.appendChild(userMsg);
+    
+    subbutton.disabled=true;
+    queryInput.value="";
+    const responseArea = document.querySelector('#ai-response-area');
+    clearTimeout(aiTimeout); 
+    aiTimeout = setTimeout(() => {
+        responseArea.innerHTML = `
+            <div class="text-center py-3 animate__animated animate__shakeX">
+                <i class="fas fa-circle-exclamation text-danger mb-2"></i>
+                <p class="small fw-bold text-danger">Response couldn't be generated. Please try again. If this keeps happen kindly <a href='?reload=true'>refresh</a> the page.
+
+                    
+                    </p>
+            </div>`;
+        document.getElementById("msgbutton").disabled = false;
+    }, 60000);
+    responseArea.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
+    socket.emit("prompt", {
+        prompt: query,
+        analyzeddata: `{{vid.aisummary|safe}}`,
+        vidid:'{{vid.id}}',
+        lastprompt:lastpromptbyai,
+        token:'{{vid.token}}'
+    });
+    old=query
+    body.scrollTop = body.scrollHeight;
+}        
+
+    let currentResponseBubble = null;
+    socket.on("limit_reached" , (data) => {
+    const messagesContainer = document.getElementById('chat-messages-container');
+    const responseArea = document.getElementById('ai-response-area');
+
+    if (responseArea.innerHTML !== '') {
+        responseArea.innerHTML = '';
+        clearTimeout(aiTimeout);
+        const newMsg = document.createElement('div');
+        newMsg.className = 'aero-msg-incoming mb-3  text-truncate';
+        newMsg.innerHTML = `
+            <div class="aero-bubble">
+                <span class="aero-label">AI ASSISTANT</span>
+                <span class="chunk-target">${data.msg} </div>
+        `;
+        let result = data.msg.replace(/<a\b[^>]*>(.*?)<\/a>/gi, '$1');
+        queryInput.value=result;
+        queryInput.disabled=true;
+        messagesContainer.appendChild(newMsg);
+        currentResponseBubble = newMsg.querySelector('.chunk-target');
+        body.scrollTop = body.scrollHeight;
+
+    };}
+);
+    socket.on("chat_chunk", (data) => {
+    const messagesContainer = document.getElementById('chat-messages-container');
+    const responseArea = document.getElementById('ai-response-area');
+    if (responseArea.innerHTML !== '') {
+        responseArea.innerHTML = '';
+        clearTimeout(aiTimeout);
+        const newMsg = document.createElement('div');
+        newMsg.className = 'aero-msg-incoming mb-3';
+        newMsg.innerHTML = `
+            <div class="aero-bubble">
+                <span class="aero-label">AI ASSISTANT</span>
+                <span class="chunk-target"></span> </div>
+        `;
+        messagesContainer.appendChild(newMsg);
+        currentResponseBubble = newMsg.querySelector('.chunk-target');
+    };
+
+    if (currentResponseBubble) {
+         if (typeof data.text === "string" && data.text.length > 0) {
+        currentResponseBubble.innerHTML += data.text;
+    };
+    const body = document.getElementById('ai-content-area');
+    body.scrollTop = body.scrollHeight;
+    if (data.done==true){
+        subbutton.disabled=false;
+        updateCounter();
+        lastpromptbyai.push(old);  
+        }
+    }
+});
+    
+</script>
+
+
+{% endblock body %}
+{% endif %}

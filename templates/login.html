@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock title %}
+{% block body %}
+
+<style nonce="{{ csp_nonce() }}">
+ .glass-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    padding: 2.5rem;
+  }
+
+  .account-chip {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .account-chip:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  .use-another-link {
+    color: #3b5998;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .use-another-link:hover { text-decoration: underline; }
+  .back-btn { cursor: pointer; color: #666; font-size: 0.85rem; margin-bottom: 15px; display: inline-block; }
+
+  #login-form-section { display: none; }
+  .back-btn { cursor: pointer; color: #666; font-size: 0.9rem; margin-bottom: 15px; display: inline-block; }
+</style>
+
+<section class="vh-90">
+  <div class="container py-5 h-100">
+    <div class="row d-flex align-items-center justify-content-center h-100">
+      
+      <div class="col-md-8 col-lg-7 col-xl-6 text-center">
+        <img src="{{ imglink }}" class="img-fluid" alt="Phone image">
+      </div>
+
+      <div class="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+        <div class="glass-card">
+          
+          {% if session.remembered_emails %}
+          <div id="account-list-section">
+            <h4 class="fw-bold mb-4 text-center">Choose an account</h4>
+            
+            {% for email in session.remembered_emails[:10] %}
+            <div class="account-chip" onclick="selectAndGo('{{ email }}')">
+              <span class="fw-bold text-dark">{{ email }}</span>
+              <a href="{{ url_for('authbp.forget_account', email=email) }}" class="text-danger" style="font-size: 1.2rem;" onclick="event.stopPropagation();">&times;</a>
+            </div>
+            {% endfor %}
+
+            <div class="text-center mt-3">
+                <span class="use-another-link" onclick="toggleView('form')">
+                    <i class="fas fa-user-plus me-1"></i> Use another account
+                </span>   
+                <p class="limit-text mt-2" style="font-size: 0.7rem; opacity: 0.6;">MAX 10 USERS LIMIT</p>
+                <div>
+                  <a href="{{url_for('authbp.respassword')}}" class="use-another-link" onclick="toggleView('form')">
+                    Reset password <i class="fas fa-external-link-alt"></i>
+                </a>
+                </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div id="login-form-section" {% if not session.remembered_emails %} style="display:block;" {% endif %}>
+            
+            {% if session.remembered_emails %}
+            <span class="back-btn fw-bold" onclick="toggleView('list')">
+                <i class="fas fa-chevron-left me-1"></i> Back to accounts
+            </span>
+            {% endif %}
+
+            <form action="{{url_for('authbp.login')}}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+              <div data-mdb-input-init class="form-outline mb-4">
+                <input type="email" required id="form1Example13" oninput="dofunc(this)" name="email" class="form-control form-control-lg" />
+                <label class="form-label" for="form1Example13">Email address</label>
+              </div>
+
+              <div data-mdb-input-init class="form-outline mb-4">
+                <input type="password" required id="form1Example23" name="password" class="form-control form-control-lg" />
+                <label class="form-label" for="form1Example23">Password</label>
+              </div>
+            <input type="hidden" name="prevurl" id="prevurl">
+
+              <div class="d-flex  mb-4">
+                
+                <!-- <div class="form-check">
+                  <input class="form-check-input" name="remember" type="checkbox" value="1" id="form1Example3" />
+                  <label class="form-check-label" for="form1Example3"> Remember me </label>
+                </div> -->
+                <a id="urllink" href="{{url_for('authbp.respassword')}}" class="btn btn-link small">Forgot password?</a>
+              </div>
+
+            <div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center border mb-4">
+               <div>
+                                <h6 class="mb-0 fw-bold small mb-1"><i class="fas fa-user-shield"></i> Account fallback</h6>
+                                <p class="text-muted mb-0 small" style="font-size: 0.75rem;">Logs of all instances of the user and generates a new random password which is sent to the user's emailid</p>
+                            </div>
+                 <div class="form-check form-switch">
+                                <input class="form-check-input" style="width: 40px; height: 20px;" name="remember" type="checkbox" value="remember" id="visCheck" 
+                                autocomplete="off"/>
+                            </div>
+            </div>
+              <button type="submit" data-mdb-ripple-init class="btn btn-primary btn-lg w-100 shadow-sm">Sign in</button>
+
+              <div class="divider d-flex align-items-center my-4">
+                <hr class="flex-grow-1">
+                <p class="text-center fw-bold mx-3 mb-0 text-muted">OR</p>
+                <hr class="flex-grow-1">
+              </div>
+
+              <a data-mdb-ripple-init class="btn btn-outline-secondary btn-lg btn-block custom-btn-back" href="{{ url_for('adminbp.adminlogin') }}" role="button">
+                <i class="fas fa-user-shield me-2"></i>Admin Studio Login
+              </a>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script nonce="{{ csp_nonce() }}">
+  function dofunc(elem){
+    document.getElementById('urllink').href = `{{url_for('authbp.respassword')}}?email=${elem.value}`;
+  }
+</script>
+<script nonce="{{ csp_nonce() }}">
+  function toggleView(view) {
+    const listSection = document.getElementById('account-list-section');
+    const formSection = document.getElementById('login-form-section');
+
+    if (view === 'form') {
+      if(listSection) listSection.style.display = 'none';
+      formSection.style.display = 'block';
+    } else {
+      if(listSection) listSection.style.display = 'block';
+      formSection.style.display = 'none';
+    }
+    
+  }
+  
+  function selectAndGo(email) {
+    const emailInput = document.getElementById('form1Example13');
+    emailInput.value = email;
+    document.getElementById('urllink').href = `{{url_for('authbp.respassword')}}?email=${email}`;
+    emailInput.focus();
+    toggleView('form');
+  }
+  {% if request.args.get('email') %}
+  selectAndGo('{{ request.args.get('email') }}'){% endif %}
+</script>
+
+{% endblock body %}

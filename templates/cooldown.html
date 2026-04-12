@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %} Take a Breather{% endblock title %}
+{% block body %} 
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="glass-card text-center p-5">
+        <div class="mb-4">
+            <div class="icon-circle mx-auto">
+                <i class="fas fa-hourglass-start fa-2x text-primary animate-spin-slow"></i>
+            </div>
+        </div>
+
+        <h2 class="fw-bold text-dark mb-1">Take a Breather</h2>
+        <p class="text-muted small mb-4">
+            Limit Reached: <span class="fw-bold text-primary">{{ reason }}</span>
+        </p>
+
+        <div class="timer-wrapper my-4">
+            <h1 class="display-2 fw-bold text-gradient mb-0">
+                <span id="timer">{{ retry_after }}</span><small class="fs-4">s</small>
+            </h1>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <p class="text-muted small px-4 mb-4">
+            To prevent bot spams a limit has been applied across our site. Kindly adhere to it the next time!
+        </p>
+
+        <a href="{{url_for('index')}}" id="homeBtn" class="btn btn-primary btn-lg w-100 shadow-0 disabled py-3" style="border-radius: 15px;">
+            <i class="fas fa-lock me-2"></i> System Syncing...
+        </a>
+    </div>
+</div>
+
+<style  nonce="{{ csp_nonce() }}">
+    /* Clean Light Glassmorphism */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.6); 
+        backdrop-filter: blur(15px) saturate(180%);
+        -webkit-backdrop-filter: blur(15px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+        max-width: 450px;
+        width: 100%;
+    }
+
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        background: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .text-gradient {
+        background: linear-gradient(45deg, #0d6efd, #6610f2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .progress-bar-container {
+        width: 120px;
+        height: 4px;
+        background: rgba(0, 0, 0, 0.05);
+        margin: 15px auto;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background: #0d6efd;
+        width: 100%;
+        transition: width 1s linear;
+    }
+
+    .animate-spin-slow {
+        animation: fa-spin 4s infinite linear;
+    }
+</style>
+
+
+<script nonce="{{ csp_nonce() }}">
+let totalSeconds = parseInt("{{ retry_after }}") || 60;
+let secondsLeft = totalSeconds;
+
+const timerDisplay = document.getElementById('timer');
+const homeBtn = document.getElementById('homeBtn');
+const progressBar = document.getElementById('progressBar');
+
+const countdown = setInterval(() => {
+    secondsLeft--;
+
+    const h = Math.floor(secondsLeft / 3600).toString().padStart(2, '0');
+    const m = Math.floor((secondsLeft % 3600) / 60).toString().padStart(2, '0');
+    const s = (secondsLeft % 60).toString().padStart(2, '0');
+    
+    if (timerDisplay) {
+        timerDisplay.textContent = `${h}:${m}:${s}`;
+    }
+    
+    let percentage = (secondsLeft / totalSeconds) * 100;
+    if (progressBar) progressBar.style.width = percentage + "%";
+
+    if (secondsLeft <= 0) {
+        clearInterval(countdown);
+        if (timerDisplay) timerDisplay.textContent = "00:00:00"; 
+        if (homeBtn) {
+            homeBtn.classList.remove('disabled', 'btn-primary');
+            homeBtn.classList.add('btn-success'); 
+            homeBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> Return to home';
+            homeBtn.href = "{{ url_for('index') }}";
+        }
+    }
+}, 1000);
+
+</script>
+
+{% endblock body %}

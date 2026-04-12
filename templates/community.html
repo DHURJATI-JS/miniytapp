@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% block title %}Explore Communities{% endblock title %}
+{% block body %}
+<div class="container py-5" style="min-height: 80vh;">
+    
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-dark mb-2" style="letter-spacing: -1.5px; font-size: 2.5rem;">Explore Communities</h1>
+        <p class="text-muted mb-4 fs-5">Find your next favorite creator and join the conversation</p>
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-7 col-md-8">
+                <form action="{{ url_for('viewcommunity') }}" id="paginationForm1" method="GET" class="p-1 bg-white border rounded-pill shadow-sm d-flex align-items-center">
+                    <div class="ps-3 text-muted"><i class="fas fa-search"></i></div>
+                           <input type="hidden" id="pageInput1" name="page" value="{{ page }}">
+
+                    <input type="text" name="q" value="{{ query or '' }}" 
+                           class="form-control border-0 shadow-0 " 
+                           placeholder="Search by name..." style="background: transparent;">
+                    <input type="hidden" name="cat" value="{{ active_cat or '' }}">
+                    <button type="submit" class="btn btn-primary btn-rounded fw-bold me-1 shadow-0">
+                        Search
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-2">
+            <div class="me-2 border-end pe-3">
+             {% set ai_ready = session.get('login') and g.user.viewduration and g.user.userclicks %}
+    
+    <a href="{% if ai_ready %}{{ url_for('viewcommunity', sort='ai') }}{% else %}#{% endif %}" 
+       class="ai-pill {% if request.args.get('sort') == 'ai' %}active{% endif %} {% if not ai_ready %}disabled-ai{% endif %}"
+       {% if not session.get('login') %}
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Login to unlock AI Discovery"
+       {% elif not ai_ready %}
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Watch more videos to train the AI"
+       {% else %}
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Personalized for you"
+       {% endif %}>
+<i class="fas fa-microchip"></i>    </a>
+            </div>
+
+            <a href="{{ url_for('viewcommunity') }}" 
+               class="category-pill {% if not active_cat and not request.args.get('sort') %}active{% endif %}">
+                All Communities
+            </a>
+            
+            {% for cat in category_list %}
+            <a href="{{ url_for('viewcommunity', cat=cat) }}" 
+               class="category-pill {% if active_cat == cat %}active{% endif %}">
+                {{ cat }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <hr class="opacity-5 mb-5">
+
+    <div class="row g-5">
+        {% for sub,chan,v_count in channels %}
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm community-card py-3">
+                <div class="card-body p-4 text-center d-flex flex-column">
+                    
+                    <div class="mb-4 position-relative d-inline-block">
+                        <a href="{{url_for('channelbp.viewchannel', id=chan.id)}}">
+                            <img src="{{ url_for('static', filename='profilephotos/' + (chan.channelicon or 'def.svg')) }}" 
+                                 class="rounded-circle border p-2 shadow-sm" 
+                                 style="width: 110px; height: 110px; object-fit: cover; background: #fff;">
+                        </a>
+                    </div>
+
+                    <a href="{{url_for('channelbp.viewchannel', id=chan.id)}}" class="text-decoration-none">
+                         <h5 class="fw-bold text-dark mb-1 text-truncate px-2">{{ chan.channelname }}</h5>
+                    </a>
+                    <a href="{{url_for('viewprofile', userid=chan.owner.id)}}" class="text-decoration-none">
+                        <p class="text-primary small text-truncate  fw-bold mb-4">@{{ chan.owner.name }}</p>
+                    </a>
+
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-dark h6 mb-0">{{ sub|compact }}</span>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem; font-weight: 800;">Subscribers</small>
+                        </div>
+                        <div class="vr opacity-10"></div>
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-dark h6 mb-0">{{v_count|compact}}</span>
+                            <small class="text-muted text-uppercase" style="font-size: 0.65rem; font-weight: 800;">Videos</small>
+                        </div>
+                    </div>
+
+                    <div class="description-container mb-4 text-center">
+                        <p class="text-muted small px-2 mb-0">
+                            {{ chan.channeldesc or 'Welcome to our community! Explore our videos and join the discussion.' }}
+                        </p>
+                    </div>
+
+                    <div class="mt-auto">
+                        <a href="{{ url_for('channelbp.viewchannel', id=chan.id) }}" class="btn btn-primary btn-rounded w-100 shadow-0 fw-bold py-3 text-uppercase" style="letter-spacing: 1px; font-size: 0.8rem;">
+                            Explore Channel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            
+  
+        <div class="col-12 text-center py-5">
+            <div class="py-5 bg-light rounded-5 border border-dashed border-2">
+                <i class="fas fa-search fa-4x text-muted mb-4 opacity-25"></i>
+                <h3 class="text-muted fw-bold">No communities found</h3>        {% if not dis %}
+
+                <p class="text-muted mb-4 fs-5">Try adjusting your filters or search terms.</p>
+
+                <a href="{{ url_for('viewcommunity') }}" class="btn btn-primary btn-rounded fw-bold px-5 py-3 shadow-0">Refresh</a>{% endif %}
+            </div>
+        </div>      
+        {% endfor %}
+      {% if channels %}
+<div class="d-flex justify-content-center mt-5 mb-5">
+    
+    {% if page > 2 %}
+    <a href="{{ url_for('viewcommunity', page=1) }}" class="btn btn-outline-primary rounded-pill me-2">
+        <i class="fas fa-home me-1"></i> Home
+    </a>    
+    {% endif %}
+
+    {% if page > 1 %}
+        {% if query or active_cat or sort %}
+            <button onclick="prevPage1()" class="btn btn-outline-primary rounded-pill me-3 shadow-0">
+                <i class="fas fa-chevron-left me-2"></i> Previous
+            </button>
+        {% else %}
+            <a href="{{ url_for('viewcommunity', page=page-1) }}" class="btn btn-outline-primary rounded-pill me-3 shadow-0">
+                <i class="fas fa-chevron-left me-2"></i> Previous
+            </a>
+        {% endif %}
+    {% endif %}
+
+    {% if has_next %}
+        {% if query or active_cat or sort %}
+            <button onclick="nextPage1()" class="btn btn-primary rounded-pill px-5 shadow-sm">
+                Next Page <i class="fas fa-chevron-right ms-2"></i>
+            </button>
+        {% else %}
+            <a href="{{ url_for('viewcommunity', page=page+1) }}" class="btn btn-primary rounded-pill px-5 shadow-sm">
+                Next Page <i class="fas fa-chevron-right ms-2"></i>
+            </a>
+        {% endif %}
+    {% else %}
+        <button class="btn btn-light rounded-pill px-5" disabled>End of Feed</button>
+    {% endif %}
+</div>
+{% endif %}
+    </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+function prevPage1() {
+    const pageInput = document.getElementById("pageInput1");
+    const form = document.getElementById("paginationForm1");
+    let next = parseInt(pageInput.value) - 1;
+
+    if (next >= 1) {
+        pageInput.value = next;
+        {% if not sort %}
+        const baseUrl = form.action.split('?')[0]; 
+        form.action = baseUrl + "?page=" + next + "&query={{query}}" + "&cat={{active_cat}}";
+        form.submit();
+        {% else %}
+        location.href = "?page=" + next + "&sort=ai";
+        {% endif %} 
+    }
+}
+function nextPage1() {
+    const form = document.getElementById("paginationForm1");
+    const input = document.getElementById("pageInput1");
+
+    if (form && input) {
+        let current = parseInt(input.value) || 1;
+        let next = current + 1; 
+
+        if (next < 1) next = 1;
+
+      input.value = next;
+        {% if not sort %}
+        const baseUrl = form.action.split('?')[0]; 
+        form.action = baseUrl + "?page="+next+"&query={{query}}"+"&cat={{active_cat}}";
+        form.submit();
+        {% else %}
+        location.href= "?page="+next+'&sort=ai'
+        {% endif %} 
+    }
+}
+</script>
+<style  nonce="{{ csp_nonce() }}">
+    /* --- Modern Typography & Layout --- */
+    h1 {
+        background: linear-gradient(135deg, #1266f1, #b23cfd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -2px !important;
+    }
+
+    /* --- Search Bar Upgrade --- */
+    #paginationForm1 {
+        background: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(18, 102, 241, 0.15) !important;
+        transition: all 0.3s ease;
+        padding: 6px !important;
+    }
+
+    #paginationForm1:focus-within {
+        box-shadow: 0 10px 30px rgba(18, 102, 241, 0.15) !important;
+        transform: translateY(-2px);
+        border-color: #1266f1 !important;
+    }
+
+    /* --- AI Pill Modernization --- */
+    .ai-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: #fff;
+        position: relative;
+        border: 2px solid transparent;
+        background-image: linear-gradient(#fff, #fff), linear-gradient(45deg, #1266f1, #b23cfd);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .ai-pill.active {
+        background-image: linear-gradient(#1266f1, #b23cfd), linear-gradient(45deg, #1266f1, #b23cfd);
+        box-shadow: 0 10px 20px rgba(178, 60, 253, 0.3);
+        animation: ai-glow 2s infinite alternate;
+        color: WHITE!important;
+    }
+
+    /* --- Category Pills --- */
+    .category-pill {
+        padding: 8px 20px;
+        border-radius: 12px;
+        background: rgba(18, 102, 241, 0.03);
+        border: 1px solid rgba(18, 102, 241, 0.08);
+        color: #475569;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none !important;
+        transition: all 0.25s ease;
+    }
+
+    .category-pill:hover {
+        background: rgba(18, 102, 241, 0.1);
+        color: #1266f1;
+    }
+
+    .category-pill.active {
+        background: #1266f1;
+        color: #fff;
+        border-color: #1266f1;
+        box-shadow: 0 8px 20px rgba(18, 102, 241, 0.2);
+    }
+
+    /* --- Community Cards: THE CORE FIX --- */
+    .community-card {
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0,0,0,0.05) !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        overflow: hidden;
+    }
+
+    .community-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.08) !important;
+        border-color: rgba(18, 102, 241, 0.2) !important;
+    }
+
+    /* Icon/Image styling */
+    .community-card img {
+        transition: transform 0.5s ease;
+        border: 4px solid #fff !important;
+    }
+
+    .community-card:hover img {
+        transform: scale(1.08) rotate(2deg);
+    }
+
+    /* Stats Section */
+    .vr { height: 30px; margin: auto 0; }
+    
+    .stats-value {
+        font-size: 1.1rem;
+        letter-spacing: -0.5px;
+    }
+
+    /* Text Clamping & Fixed Height */
+    .description-container p {
+        height: 54px; 
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        line-height: 1.5;
+        color: #64748b !important;
+        font-size: 0.85rem;
+    }
+
+    /* Button Advanced Styling */
+    .btn-primary {
+        background: linear-gradient(45deg, #1266f1, #00b7ff) !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-primary:hover {
+        box-shadow: 0 10px 20px rgba(18, 102, 241, 0.3) !important;
+        transform: scale(1.02);
+    }
+
+    .btn-outline-primary {
+        border-width: 2px !important;
+        font-weight: 700 !important;
+    }
+
+    /* Empty State */
+    .border-dashed {
+        border-style: dashed !important;
+        background: #f8fafc !important;
+    }
+
+    @keyframes ai-glow {
+        from { box-shadow: 0 0 10px rgba(178, 60, 253, 0.2); }
+        to { box-shadow: 0 0 25px rgba(18, 102, 241, 0.4); }
+    }
+
+    /* Smooth Entry for Grid */
+    .row.g-5 > div {
+        animation: fadeInUp 0.6s ease forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeInUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+
+{% endblock body %}

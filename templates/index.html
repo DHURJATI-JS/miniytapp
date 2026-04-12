@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+{% from 'share_base.html' import sb with context %}   
+{% block body %}
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-11">
+      <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+        
+        <div class="glass-search-card flex-grow-1">
+          <div class="search-inner">
+            <i class="fas fa-search search-icon d-none d-md-block"></i>
+            <input 
+              type="text" 
+              id="mainSearchInput" 
+              placeholder="" 
+              autocomplete="off"
+              class="form-control-lg"
+              value="{{ g.dataobj.video_title if g.dataobj and g.dataobj.video_title else '' }}" 
+            />
+            <button id="searchBtn" class="btn btn-primary btn-lg rounded-pill shadow-0 ripple-surface" disabled>
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span class="d-none d-md-inline">Search</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button 
+            id="clearSearchBtn"
+            class="btn-util-glass ripple-surface" 
+            title="Clear Search"
+            disabled
+          >
+            <i class="fas fa-times clear-icon"></i>
+          </button>
+          
+          <button 
+            class="btn-util-glass ripple-surface advance-glow" 
+            data-mdb-modal-init 
+            data-mdb-target="#advancedSearchModal"
+            title="Advanced Filters"
+          >
+            <i class="fas fa-sliders-h"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+    :root {
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --accent-blue: #1266f1;
+  --glow-blue: rgba(18, 102, 241, 0.15);
+}
+/* Disabled State for Acoustic buttons */
+.btn-util-glass:disabled, 
+#searchBtn:disabled {
+  opacity: 0.4;
+  filter: grayscale(1);
+  cursor: not-allowed;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+/* Erasing/Clearing Animation */
+@keyframes eraseText {
+  0% { transform: translateX(0); opacity: 1; filter: blur(0); }
+  100% { transform: translateX(20px); opacity: 0; filter: blur(5px); }
+}
+
+.erasing-active {
+  animation: eraseText 0.4s ease forwards;
+}
+
+/* Clear Icon Spin on hover */
+.btn-util-glass:not(:disabled):hover .clear-icon {
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+/* Add a subtle "pulse" to the Search button when active */
+#searchBtn:not(:disabled) {
+  animation: activePulse 2s infinite;
+}
+
+@keyframes activePulse {
+  0% { box-shadow: 0 0 0 0 rgba(18, 102, 241, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(18, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(18, 102, 241, 0); }
+}
+.glass-search-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 100px;
+  padding: 6px;
+  border: 1px solid rgba(18, 102, 241, 0.1);
+  box-shadow: 0 8px 32px var(--glow-blue);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.glass-search-card:focus-within {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 40px rgba(18, 102, 241, 0.25);
+  transform: translateY(-3px);
+}
+
+.search-inner {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+}
+
+#mainSearchInput {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #1e293b;
+  font-size: 1.3rem;
+  font-weight: 400;
+  padding: 12px 5px;
+}
+
+/* Utility Buttons (Clear & Filter) */
+.btn-util-glass {
+  height: 58px;
+  width: 58px;
+  border-radius: 18px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(18, 102, 241, 0.1);
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px var(--glow-blue);
+}
+
+.btn-util-glass:hover {
+  background: var(--accent-blue);
+  color: white;
+  transform: translateY(-3px) rotate(5deg);
+  box-shadow: 0 10px 25px rgba(18, 102, 241, 0.4);
+}
+
+.advance-glow {
+  background: rgba(18, 102, 241, 0.05);
+  border: 1px solid rgba(18, 102, 241, 0.2);
+}
+
+/* Search Button Animation */
+#searchBtn {
+  font-weight: 700;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #1266f1 0%, #00b7ff 100%);
+  border: none;
+  padding: 12px 30px;
+  transition: all 0.3s ease;
+}
+
+#searchBtn:hover {
+  letter-spacing: 1px;
+  box-shadow: 0 5px 20px rgba(18, 102, 241, 0.4);
+}
+
+@media (max-width: 768px) {
+  .btn-util-glass {
+    height: 50px;
+    width: 50px;
+    font-size: 1rem;
+    border-radius: 15px;
+  }
+  #mainSearchInput {
+    font-size: 1rem;
+  }
+}
+</style>
+<script>
+    const searchInput = document.getElementById('mainSearchInput');
+const searchBtn = document.getElementById('searchBtn');
+const clearBtn = document.getElementById('clearSearchBtn');
+
+// 1. Handle Button States (Disable if empty)
+function toggleButtonStates() {
+    const hasValue = searchInput.value.trim().length > 0;
+    searchBtn.disabled = !hasValue;
+    clearBtn.disabled = !hasValue;
+}
+
+searchInput.addEventListener('input', toggleButtonStates);
+window.addEventListener('load', toggleButtonStates); // Check on load for saved values
+
+// 2. Erasing Animation & Clear Logic
+clearBtn.onclick = () => {
+    // Add animation class to input
+    searchInput.classList.add('erasing-active');
+    
+    // Wait for animation to finish then clear
+    setTimeout(() => {
+        searchInput.value = '';
+        searchInput.classList.remove('erasing-active');
+        toggleButtonStates();
+        searchInput.focus();
+    }, 400); 
+};
+
+const suggestions = {{mostsearched|safe}};
+
+let i = 0, j = 0, currentStr = "", isDeleting = false;
+
+function typeAnimation() {
+    const fullText = suggestions[i];
+    currentStr = isDeleting ? fullText.substring(0, j - 1) : fullText.substring(0, j + 1);
+    j = isDeleting ? j - 1 : j + 1;
+
+    searchInput.setAttribute('placeholder', currentStr);
+
+    if (!isDeleting && j === fullText.length) {
+        setTimeout(() => isDeleting = true, 2000);
+    } else if (isDeleting && j === 0) {
+        isDeleting = false;
+        i = (i + 1) % suggestions.length;
+    }
+
+    setTimeout(typeAnimation, isDeleting ? 50 : 100);
+}
+
+// 4. Execution Logic
+function executeSubmission() {
+    if(!searchBtn.disabled) {
+        // Map to your existing pagination form inputs
+        const bridge = document.getElementById('searchqueryfor') || {}; 
+        const targetForm = document.getElementById('paginationForm');
+        
+        if (bridge) bridge.value = searchInput.value;
+        targetForm.submit();
+    }
+}
+
+searchBtn.onclick = executeSubmission;
+searchInput.onkeypress = (e) => { if(e.key === 'Enter') executeSubmission(); };
+
+typeAnimation();
+</script>
+{% if vids %}
+
+
+      <div class="container mt-5">
+  <div class="row">
+  {% for v_count, l_count, video_obj in vids %}
+  {% if video_obj.parent_channel.user_id==session.get('user_id') %}
+  {{ sb( v_count, l_count, video_obj, g.tpath,False,True)}}
+  {% else %}
+  {{ sb( v_count, l_count, video_obj, g.tpath,False)}}
+  {% endif %}
+  
+  {% endfor %}
+  </div>
+</div>
+
+{% else %}
+ <div class="alert alert-info alert-dismissible fade show shadow-0 border-0 border-start border-4 border-{{category if category != 'message' else 'primary'}} px-4 py-3 mb-3" role="alert" style="background-color: #f8f9fa; border-radius: 10px;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-3"></i>
+                    <div class="flex-grow-1 small fw-bold text-dark">No videos found</div>
+                </div>
+            </div>
+{% endif %}
+{% if vids %}
+    <div class="d-flex justify-content-center mt-5 mb-5">
+   {% if page > 2 %}
+             <a href="{{ url_for('index', page=1) }}" class="btn btn-outline-primary rounded-pill me-3">
+            <i class="fas fa-home me-2"></i> Home
+        </a>    
+        
+         
+        {% endif %} 
+        
+        {% if not g.dataobj and page > 1 %}
+        <a href="{{ url_for('index', page=page-1) }}" class="btn btn-outline-primary rounded-pill me-3">
+            <i class="fas fa-chevron-left me-2"></i> Previous
+        </a>
+
+     
+    {% elif g.dataobj and page > 1 %}
+        <a onclick='prevPage()' class="btn btn-outline-primary rounded-pill me-3">
+            <i class="fas fa-chevron-left me-2"></i> Previous
+        </a>
+
+     
+    {% endif %}
+
+    {% if not g.dataobj and has_next %}
+        <a href="{{ url_for('index', page=page+1) }}" class="btn btn-primary rounded-pill px-5 shadow-sm">
+            Next Page <i class="fas fa-chevron-right ms-2"></i>
+        </a>
+        
+    {% elif g.dataobj and has_next %}
+        <a onclick='nextPage()'  class="btn btn-primary rounded-pill px-5 shadow-sm">
+            Next Page <i class="fas fa-chevron-right ms-2"></i>
+        </a>
+        {% endif %}
+{% if not has_next %}
+    
+
+        <button class="btn btn-light rounded-pill px-5" disabled>End of Feed</button>
+    {% endif %}
+</div>
+<script  nonce="{{ csp_nonce() }}">
+    function prevPage() {
+    const pageInput = document.getElementById("pageInput");
+    const form = document.getElementById("paginationForm");
+
+    let currentPage = parseInt(pageInput.value);
+    if (currentPage > 1) {
+        pageInput.value = currentPage - 1;
+        form.submit();
+    }
+}
+function nextPage() {
+    const form = document.getElementById("paginationForm");
+    const input = document.getElementById("pageInput");
+
+    if (form && input) {
+        let current = parseInt(input.value) || 1;
+        let next = current + 1; 
+
+        if (next < 1) next = 1;
+
+      input.value = next;
+
+        const baseUrl = form.action.split('?')[0]; 
+        form.action = baseUrl + "?page=" + next;
+
+        form.submit();
+    }
+}
+</script>
+
+
+{% endif %}
+{% endblock body %}

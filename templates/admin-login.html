@@ -1,0 +1,153 @@
+{% extends 'admin_base.html' %}
+{% block body %}
+<style nonce="{{ csp_nonce() }}">
+    :root {
+        --studio-primary: #065fd4;
+        --studio-dark: #0f0f0f;
+        --studio-gray: #f9f9f9; /* Added missing variable */
+    }
+
+    .admin-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        padding: 20px;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 450px;
+        border: 1px solid #e0e0e0;
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+        transition: transform 0.3s ease;
+    }
+
+    .studio-logo-box {
+        width: 64px;
+        height: 64px;
+        background: white;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .form-control-studio {
+        border-radius: 12px !important;
+        border: 1px solid #dcdcdc !important;
+        padding: 12px 16px !important;
+        font-size: 1rem !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .form-control-studio:focus {
+        border-color: var(--studio-primary) !important;
+        box-shadow: 0 0 0 3px rgba(6, 95, 212, 0.15) !important;
+        background-color: #fff !important;
+    }
+
+    .btn-studio-auth {
+        background-color: var(--studio-dark);
+        color: white;
+        border-radius: 50px;
+        padding: 12px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        border: none;
+        transition: 0.2s;
+    }
+
+    .btn-studio-auth:hover {
+        background-color: #272727;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: #fff;
+    }
+
+    .auth-footer-link {
+        color: #606060;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .auth-footer-link:hover {
+        color: var(--studio-primary);
+    }
+
+    /* Fixed Mobile Adjustments */
+    @media (max-width: 576px) {
+        .admin-wrapper {
+            padding: 10px; /* Less outer margin so card can be wider */
+            align-items: center; 
+        }
+        .login-card {
+            border-radius: 20px;
+            /* Overriding the 'p-5' class which is too large for mobile */
+            padding: 35px 20px !important; 
+            width: 95%; /* Ensures it fills most of the screen width */
+            margin: 0 auto;
+        }
+        .studio-logo-box {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+
+<div class="admin-wrapper">
+    <div class="card login-card p-5">
+        <div class="text-center mb-5">
+            <div class="studio-logo-box">
+                <i class="fas fa-user-shield fa-2x text-primary"></i>
+            </div>
+            <h3 class="fw-bold mb-1" style="letter-spacing: -1px;">STUDIO <span class="text-primary">ADMIN</span></h3>
+            <p class="text-muted small">Authentication required for dashboard access</p>
+        </div>
+
+        <form method="POST">
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted mb-1" for="email">Admin Email</label>
+                <input type="email" name="email" id="email" 
+                       class="form-control form-control-studio" 
+                       placeholder="name@studio.com" required />
+            </div>
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div class="mb-2">
+                <label class="form-label small fw-bold text-muted mb-1" for="password">Password</label>
+                <input type="password" name="password" id="password" 
+                       class="form-control form-control-studio" 
+                       placeholder="••••••••" required />
+            </div>
+
+            <div class="text-end mb-4">
+                <a href="{{ url_for('adminbp.resetadminpass') }}" class="auth-footer-link fw-bold" style="font-size: 0.8rem;">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <button type="submit" class="btn btn-dark btn-studio-auth w-100 shadow-0 mb-4">
+                Sign In to Dashboard
+            </button>
+
+            <div class="text-center">
+                <a href="{{ url_for('authbp.login' if not session.get('login') else 'index') }}" class="auth-footer-link">
+                    <i class="fas fa-arrow-left me-2 small"></i>Back to Website
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock body %}

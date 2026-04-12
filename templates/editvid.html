@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+
+{% if vid %}
+{% block title %}
+    Edit video: {{vid.name}}
+{% endblock title %}
+{% block body %}
+
+<div class="glass-summary-card animate__animated animate__fadeIn">
+    <div class="glass-header d-flex align-items-center justify-content-between mb-3 w-100">
+    <div class="d-flex align-items-center">
+        <div class="glass-icon-box me-3">
+            <i class="fas fa-wand-magic-sparkles text-primary"></i>
+        </div>
+        <div>
+            <h6 class="mb-0 fw-bold text-dark">AI Video Intelligence</h6>
+            <div class="d-flex flex-wrap gap-1">
+                <span class="badge rounded-pill bg-primary-soft text-primary border" style="font-size: 0.6rem;">
+                    Powered by ollama, faster-whisper and opencv
+                </span> 
+                <span class="badge rounded-pill bg-primary-soft text-primary border" style="font-size: 0.6rem;">
+                    <strong>AI can make mistakes</strong>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ms-auto">
+          <span data-bs-toggle="tooltip" data-bs-placement="bottom" 
+            title="{% if not g.ai %} Ai is not available {% endif %}">
+        <button class="btn btn-light {% if not g.ai %} disabled {% endif %}  my-2 btn-rounded fw-bold shadow-0 border" 
+            {% if g.ai %}
+                data-mdb-ripple-init
+            {% endif %}  
+            
+        {% if g.ai %} 
+        onclick="this.setAttribute('disabled', 'true');aisubmit()"{% endif %}  >
+            <span>
+                <i class="fas fa-rotate text-primary me-1"></i> Regenerate summary
+            </span>
+        </button></span>
+    </div>
+</div>
+    
+    <div class="glass-body">
+        <label class="glass-label">Video Summary</label>
+        <div class="glass-content">{% if vid.aisummary %}
+    {{vid.aisummary|safe}}
+    {% else %}
+    <strong>Ai summary coud'nt be generated. Try again by clicking update.</strong>
+{% endif %}
+            
+        </div>
+        <div id="summary-display" class="glass-content">
+    </div>
+    <span data-bs-toggle="tooltip" data-bs-placement="bottom" 
+            title="{% if not g.ai %} Ai is not available {% endif %}">
+        <button 
+          {% if g.ai %}
+                data-mdb-ripple-init
+            {% endif %}  
+            
+        {% if g.ai %} id="improve-btn" onclick="this.setAttribute('disabled', 'true')" {% endif %} class="btn {% if not g.ai %} disabled {% endif %} btn-light my-2 btn-rounded fw-bold shadow-0 border">
+        <span id="btn-text">
+            <i class="fas fa-wand-magic-sparkles text-primary me-1"></i> Suggest improvements
+        </span>
+        <div id="btn-loader" class="spinner-border spinner-border-sm text-primary d-none" role="status"></div>
+    </button></span>
+
+    </div>
+</div><style nonce="{{ csp_nonce() }}">
+.glass-summary-card {
+    background: rgba(255, 255, 255, 0.4) !important; 
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.6); 
+    padding: 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    max-width: 100%;
+    margin: 20px 0;
+}
+
+.glass-icon-box {
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.glass-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #1266f1; /* Studio Blue */
+    margin-bottom: 8px;
+    letter-spacing: 0.05rem;
+    opacity: 0.8;
+}
+
+.glass-content {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* Light badge for the glass effect */
+.bg-primary-soft {
+    background: rgba(18, 102, 241, 0.1) !important;
+}</style>
+<div class="studio-light-suite py-4 px-3  rounded" style="background-color: #fbfbfb; min-height: 100vh; color: #4f4f4f;">
+    <style  nonce="{{ csp_nonce() }}">
+        .studio-light-suite .editor-card { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .studio-light-suite .monitor-box { background: #000; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .studio-light-suite .form-label { color: #757575; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; display: block; }
+        .studio-light-suite .custom-input { background: #f8f9fa !important; border: 1px solid #ddd !important; border-radius: 8px !important; color: #333 !important; }
+        .studio-light-suite .custom-input:focus { border-color: #1266f1 !important; background: #fff !important; }
+        .studio-light-suite .file-drop-zone { border: 2px dashed #d1d1d1; border-radius: 10px; padding: 20px; text-align: center; transition: 0.3s; cursor: pointer; background: #fdfdfd; }
+        .studio-light-suite .file-drop-zone:hover { border-color: #1266f1; background: #f0f7ff; }
+    </style>
+    <form id="editofrm" action="{{url_for('videobp.editvid', id=vid.id)}}" method="post" enctype="multipart/form-data">
+  <div class="container" style="max-width: 1100px;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        
+        <div style="min-width: 0;" class="flex-grow-1">
+            <h2 class="fw-bold mb-1 text-break" id="header-title">Edit Video: {{vid.name}}</h2>
+            <p class="text-muted small mb-0 text-truncate" style="max-width: 100%;">Manage your video file and metadata</p>
+        </div>
+
+        <div class="d-flex gap-2 flex-shrink-0 align-items-center">
+            <button type="button" class="btn btn-danger btn-lg rounded-pill shadow-0 px-3 px-md-4" onclick="location.reload()" title="Reset">
+                <i class="fas fa-trash"></i>
+            </button> 
+            
+            <button type="button" onclick="window.open('/view_video/{{vid.id}}')"  
+                class="btn-lg {% if vid.display==False or vid.parent_channel.ischannelenabled==False %}disabled {% endif %}btn btn-primary btn-rounded shadow-0 fw-bold px-3">
+                Watch Now <i class="fa-solid fa-up-right-from-square ms-1"></i>
+            </button> 
+            
+            <button type="button" onclick="window.open('{{url_for('channelbp.viewchannel',id=vid.parent_channel.id)}}')"  
+                class="btn-lg btn btn-primary btn-rounded shadow-0 fw-bold px-3">
+                Channel <i class="fa-solid fa-up-right-from-square ms-1"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="monitor-box mb-4">
+                    <video id="main-player" crossorigin="anonymous" class="w-100 h-100" controls poster="/{{g.tpath}}/{{vid.thumbnail}}">
+                        <source id="video-blob" src="/{{g.vpath}}/{{vid.file}}">
+                  <track 
+        label="Auto" 
+        kind="subtitles" 
+        srclang="en" 
+        src="{{ url_for('static', filename='captions/' ) }}/{{vid.file}}.vtt" 
+        >  </video>    
+                </div>
+                <div class="editor-card p-4">
+                    <label class="form-label" for="video-file-input">Video Source File</label>
+                    <div class="file-drop-zone" onclick="document.getElementById('video-file-input').click()">
+                        <i class="fas fa-file-video fa-2x text-primary mb-2"></i>
+                        <p class="mb-0 fw-bold" id="file-name-display">Click to upload or drag video here</p>
+                        <p class="text-muted small">MP4, WebM or OGG (Max 500MB)</p>
+                        <strong class=" text-danger"><i class="fas fa-info-circle"></i> Updating video file will remove likes and views</strong>
+                        <input name="vfile" type="file" id="video-file-input" class="d-none" accept="video/*">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="editor-card p-4 h-100">
+                    <div class="mb-4">
+                        <label class="form-label" for="title-field">Title*</label>
+                        <input type="text" name="name" value="{{vid.name}}" minlength="10" maxlength="50" id="title-field" class="form-control custom-input form-control-lg" placeholder="e.g. My Summer Vacation">
+                    </div>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-4">
+                        <label class="form-label" for="desc-field">Description*</label>
+                        <textarea id="desc-field" name="desc" minlength="30" maxlength="300"  class="form-control custom-input" rows="5" placeholder="What is this video about?">{{vid.description}}</textarea>
+                    </div>
+                    <input type="hidden" name="ai_summary" id="aiinput">
+<div class="mb-4">
+    <label class="form-label" for="thumb-file-input">Thumbnail Image</label>
+    <div class="input-group mb-2">
+        <input type="file" id="thumb-file-input" name="tfile" class="form-control custom-input" accept="image/*" >
+    </div>
+    <div id="thumb-preview-container" class="mt-2 d-none">
+        <p class="text-muted small mb-1">Preview:</p>
+        <img id="thumb-preview-img" src="" class="img-fluid rounded shadow-sm" style="max-height: 150px; border: 1px solid #ddd;">
+    </div>
+</div>
+
+                    <div class="mb-4">
+                        <label class="form-label" for="vis-select">Visibility*</label>
+                        <select class="form-select custom-input" required name="privacy" id="vis-select">
+                            <option value="1" {% if vid.display==True %}
+                                selected
+                            {% endif %}>🌐 Public</option>
+                            <option value="0"{% if vid.display!=True %}
+                                selected
+                            {% endif %}>🔒 Private</option>
+                        </select>
+                    </div>
+                  <div class="mb-4">
+                        <label class="form-label" for="vis-selectd">Category*</label>
+                        <select class="form-select custom-input" required name="category" id="vis-selectd">
+                               {% for x in categories %}
+                                {% if vid.category==x %}
+                           <option value="{{x}}" selected>{{x}}</option>          
+                                {% else %}
+                        <option value="{{x}}" >{{x}}</option>          
+        
+                                {% endif %}
+                               {% endfor %}
+                       
+                        </select>
+                    </div>
+                    <hr class="my-4" style="opacity: 0.1;">
+                    
+                   <div class="d-flex justify-content-between align-items-center px-2">
+    <div class="text-muted small">
+        <span id="timestamp">
+            <i class="fas fa-clock"></i> {{vid.created.strftime('%b %d, %Y') if vid.created.strftime else vid.created}} 
+            &bull; <i class="fas fa-thumbs-up"></i> {{likes|compact }} 
+            &bull; <i class="fas fa-eye"></i> {{views|compact}}
+        </span>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-0 px-4 px-md-5 fw-bold">
+        Update
+    </button>
+</div>
+  
+                </div>
+            </div>
+        </div>
+        <div class="mt-5 pt-4 border-top border-secondary">
+    <h6 class="text-danger fw-bold mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h6>
+    <p class="text-muted small">Once you delete a video, there is no going back. Please be certain.</p>
+    <button type="button" class="btn btn-outline-danger btn-sm w-100" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#deleteVideoModal">
+        Delete Video Permanently
+    </button>
+</div>
+    </div></form>
+
+</div>
+
+
+<div class="modal fade" id="deleteVideoModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-white text-dark" style="border-radius: 15px;">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold text-danger" id="deleteModalLabel">Permanently delete this video?</h5>
+        <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-trash-alt fa-4x text-danger mb-3 opacity-25"></i>
+        <p class="mb-0">This will permanently erase <strong>"{{vid.name}}"</strong> and all its data (views, likes, comments). This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center pb-4">
+        <button type="button" class="btn btn-light btn-rounded px-4" data-mdb-dismiss="modal">Cancel</button>
+        <form action="/delete_video/{{vid.id}}" method="POST" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-danger btn-rounded px-4 shadow-0">Delete Forever</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script  nonce="{{ csp_nonce() }}">
+    function aisubmit(){
+        const form= document.getElementById("editofrm")
+        const aiinput = document.querySelector("#aiinput")
+        aiinput.value="aisubmit"
+        form.submit()
+    }
+</script>
+
+<script  nonce="{{ csp_nonce() }}">
+  
+    document.getElementById('improve-btn').addEventListener('click', function() {
+    const btn = this;
+    const btnText = document.getElementById('btn-text');
+    const btnLoader = document.getElementById('btn-loader');
+    const display = document.getElementById('summary-display');
+    btn.setAttribute('disabled', 'true');
+    btnText.classList.add('d-none');
+    btnLoader.classList.remove('d-none');
+    const impSocket = io("{{request.host}}"); 
+    const fetchTimeout = setTimeout(() => {
+        impSocket.disconnect();
+        btn.innerHTML = `<i class="fas fa-circle-exclamation text-danger me-1"></i> Timeout: Try again later`;
+        btn.classList.add('text-danger');
+    }, 60000);
+
+    impSocket.emit('get_improvements', { 
+        vid_id: "{{vid.id}}", 
+        token:'{{vid.token}}'
+
+    });
+    let isFirstChunk = true;
+    impSocket.on('chat_chunk', (data) => {
+        clearTimeout(fetchTimeout); 
+        if (isFirstChunk) {
+            display.innerHTML += `<hr class="my-3 opacity-25"><label class="glass-label text-primary">Refined Suggestions</label><br>`;
+            isFirstChunk = false;
+        }
+        if (data.text) {
+            display.innerHTML += data.text;
+            display.scrollTop = display.scrollHeight;
+        }
+
+        if (data.done) {
+            btn.innerHTML = `<i class="fas fa-check text-success me-1"></i>`;
+            impSocket.disconnect();
+        }
+    });
+
+});
+</script>
+
+<script  nonce="{{ csp_nonce() }}">
+    (function() {
+        const root = document.querySelector('.studio-light-suite');
+        const videoInput = root.querySelector('#video-file-input');
+        const player = root.querySelector('#main-player');
+        const fileNameLabel = root.querySelector('#file-name-display');
+        const headerTitle = root.querySelector('#header-title');
+        const thumbInput = root.querySelector('#thumb-file-input');
+        const thumbPreviewImg = root.querySelector('#thumb-preview-img'); 
+        const thumbContainer = root.querySelector('#thumb-preview-container'); 
+        videoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileNameLabel.innerText = file.name;
+                
+                const url = URL.createObjectURL(file);
+                player.src = url;
+                
+                player.play();
+                
+   
+            }
+        });
+        thumbInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                thumbPreviewImg.src = url;
+                
+                                if (thumbContainer) {
+
+                    thumbContainer.classList.remove('d-none');
+                }
+            }
+        });
+        
+    })();
+</script>
+
+
+
+<script  nonce="{{ csp_nonce() }}">
+  function cancelTask() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const url = '/cancel-task';
+    const data = JSON.stringify({ action: 'disconnect' });
+
+    navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
+}
+
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+        cancelTask();
+    }
+});
+
+window.addEventListener('pagehide', cancelTask);
+</script>
+{% endblock body %}    
+{% endif %}

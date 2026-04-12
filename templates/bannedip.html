@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" class="flex-grow-1">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static' , filename='css/mdb.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static' , filename='css/data.css')}}">
+    <link rel="shortcut icon" href="{{url_for('static' , filename='img/main.svg')}}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{g.appname}} Ip ban</title>
+</head>
+<body class="bg-light  min-vh-100">
+<div class="admin-wrapper d-flex align-items-center justify-content-center vh-100">
+    <div class="card login-card p-5 text-center shadow-lg border-0" style="max-width: 500px; border-radius: 25px;">
+        <div class="mb-4">
+            <i class="fas fa-user-slash fa-4x text-danger"></i>
+        </div>
+        <h2 class="fw-bold">ACCESS <span class="text-danger">DENIED</span></h2>
+        <hr>
+        <p class="text-muted">
+            Your IP address (<strong>{{ request.remote_addr }}</strong>) has been flagged for suspicious activity or multiple security violations.
+        </p>
+        <div class="alert alert-secondary small">
+            If you believe this is a mistake, please contact the System Administrator.
+        </div>
+        <a href="mailto:{{myemail}}?subject=Studio%20Security%20Report&body=IP:%20{{ request.remote_addr }}%0D%0AIssue:%20" 
+   class="btn btn-dark rounded-pill px-5 py-2 shadow-sm">
+    <i class="fas fa-envelope me-2"></i>Contact Developer
+</a>
+    </div><script nonce="{{ csp_nonce() }}">
+  
+   document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('button, .btn');
+
+    buttons.forEach((button) => {
+      new mdb.Ripple(button, {
+        color: 'light' 
+      });
+    });
+  });
+</script> 
+</div><script src="{{ url_for('static', filename='js/mdb.umd.min.js') }}"></script>
+
+    </body></html>

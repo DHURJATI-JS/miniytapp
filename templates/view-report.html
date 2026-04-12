@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}My Pending Reports{% endblock title %}
+
+{% block body %}
+<style nonce="{{ csp_nonce() }}">
+    .report-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border-left: 6px solid #dee2e6; /* Default */
+    }
+
+    .status-pending { border-left-color: #065fd4 !important; } /* Blue */
+    .status-resolved { border-left-color: #2e7d32 !important; } /* Green */
+    .status-rejected { border-left-color: #d32f2f !important; } /* Red */
+
+    .report-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        border-color: #bdbdbd;
+    }
+
+    .report-title {
+        color: #0f0f0f;
+        font-weight: 700;
+        font-size: 1.05rem;
+        letter-spacing: -0.3px;
+    }
+
+    .badge-studio {
+        font-size: 0.65rem;
+        text-uppercase;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #bbb; border-radius: 10px; }
+
+    .btn-studio-view { background: #f2f2f2; color: #0f0f0f; font-weight: 600; border: none; }
+    .btn-studio-view:hover { background: #e5e5e5; }
+</style>
+
+<div class="container py-5" style="max-width: 950px;">
+    <div class="d-flex align-items-center justify-content-between mb-5">
+        <div>
+            <h2 class="fw-bold mb-0" style="letter-spacing: -1px;">Account Reports</h2>
+            <p class="text-muted small">Track and manage your submitted inquiries</p>
+            <p class="text-muted small fw-bold">Showing latest {{maxreportsperpage}} reports</p>
+
+        </div>
+        <i class="fas fa-shield-check fa-2x opacity-25"></i>
+    </div>
+
+    {% if reports %}
+    <div class="row g-4">
+        {% for rep in reports %}
+        {% set status_class = 'status-pending' if rep.status|lower == 'pending' else 'status-resolved' if rep.status|lower == 'resolved' else 'status-rejected' %}
+        {% set badge_color = 'bg-primary' if rep.status|lower == 'pending' else 'bg-success' if rep.status|lower == 'resolved' else 'bg-danger' %}
+        {% set btntext = 'Cancel' if rep.status|lower == 'pending' else 'Delete' if rep.status|lower == 'resolved' else 'Delete' %}
+
+        <div class="col-12">
+            <div class="report-card p-4 position-relative {{ status_class }}">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge {{ badge_color }} badge-studio shadow-0">
+                                {{ rep.status|upper }}
+                            </span>
+                            <span class="text-muted" style="font-size: 0.75rem; font-family: monospace;">#{{ rep.id }}</span>
+                        </div>
+                        <h6 class="report-title mb-1">{{ rep.reason }}</h6>
+                        <div class="text-muted small">
+                            <i class="far fa-calendar-alt me-1"></i> {{ rep.created_at.strftime('%d %b, %Y') }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                        <div class="d-flex justify-content-md-end gap-2">
+                            <button type="button" class="btn btn-sm btn-studio-view rounded-pill px-4" 
+                                    data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#reportModal{{ rep.id }}">
+                                <i class="fas fa-expand me-1"></i> Details
+                            </button>
+
+                            <form action="{{ url_for('reportbp.remove_report', id=rep.id) }}" method="POST" class="m-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 " 
+                                        data-mdb-ripple-init>
+                                    <i class="fas fa-trash-alt me-1"></i> {{btntext}}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="reportModal{{ rep.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Report Summary</h5>
+                        <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+                    </div>
+                    
+                    <div class="modal-body pt-3">
+                        <div class="p-3 mb-3 border-start border-4 {{ status_class }}" style="background: #f8f9fa; border-radius: 0 10px 10px 0;">
+                            <label class="small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.6rem;">Reported Reason</label>
+                            <p class="mb-0 fw-bold">{{ rep.reason }}</p>
+                        </div>
+
+                        <label class="small fw-bold text-uppercase text-muted mb-1 ms-1" style="font-size: 0.6rem;">Context Provided</label>
+                        <div class="custom-scroll p-3 border" style="max-height: 200px; overflow-y: auto; border-radius: 12px; background: #ffffff;">
+                            <p class="text-muted small mb-0" style="white-space: pre-wrap; line-height: 1.6;">
+                                {{ rep.details if rep.details else 'No additional context was provided for this report.' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-dark w-100 rounded-pill py-2" data-mdb-dismiss="modal">Close Review</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 border rounded-5 bg-light" style="border-style: dashed !important;">
+        <i class="fas fa-clipboard-check fa-3x mb-3 text-muted"></i>
+        <h5 class="fw-bold">No Pending Reports</h5>
+        <p class="text-muted small">Everything looks clear. New reports will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock body %}
