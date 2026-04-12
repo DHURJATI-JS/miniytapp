@@ -173,8 +173,8 @@ mostsearched=["Search for how to make a cake...",
     "Search for how to use minicpm...",
     "Search for coordinate geometry..."]
 category=[x.lower() for x in category ]
-myemail=""
-myemailkey=""
+myemail="dhurjatisharma2010@gmail.com"
+myemailkey="Removed for now"
 def get_video_duration(file_path):
     clip = VideoFileClip(file_path)
     duration = clip.duration  
