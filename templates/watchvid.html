@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <div class="comments-section mb-5 px-3 py-4">
     <h5 class="fw-bold mb-4 d-flex align-items-center">
-        Comments<span class="badge badge-primary ms-2 rounded-pill" id="commentcounter" style="font-size: 0.7rem;"></span>
+        Comments<span class="badge  badge-primary ms-2 rounded-pill" id="commentcounter" style="font-size: 0.7rem;"></span>
     </h5>
 
     {% set jj = vid.comments|length %}
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <a href="{{url_for('viewprofile', userid=comment.owner.id)}}">
                     <img src="/{{g.logopath}}/{{comment.owner.profilephoto}}" 
-                         class="rounded-circle me-3 border shadow-sm" 
+                         class="rounded-circle dhurjati me-3 border shadow-sm" 
                          style="width: 40px; height: 40px; object-fit: cover; background: #fff;">
                 </a>
 
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         {% if session.get('login') and g.user.id == reply.owner.id %}
                                         <form action="{{ url_for('videobp.removeinnercomment', id=reply.id) }}" method="POST" class="m-0">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button type="submit" class="btn btn-link p-0 text-danger fw-bold" style="font-size: 0.65rem; text-decoration: none;">Delete</button>
+                                            <button type="submit" class="jeetbtn btn-link p-0 text-danger fw-bold" style="font-size: 0.65rem; text-decoration: none;">Delete</button>
                                         </form>
                                         {% endif %}
                                         {% if session.get('login') and not g.user.id == reply.owner.id %}
@@ -688,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                 <div class="flex-grow-1" style="min-width: 0;">
                                     <a href="{{url_for('playlistbp.viewthatplaylist',id=p.id)}}"><h6 class="fw-bold mb-1 text-truncate">{{ p.name }}</h6>
-                                    <p class="text-muted mb-0 small text-truncate">{{ p.description or 'No description' }}</p></a>
+                                    <p class="text-muted mb-0 jeet small text-truncate">{{ p.description or 'No description' }}</p></a>
                                 </div> {% if p not in alr_add %}
 
                                 <button  type="button" 
