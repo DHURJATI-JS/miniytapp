@@ -67,4 +67,5 @@ After receiving permission, the stack can be launched via the production protoco
     ./system/bin/python -m gunicorn -k eventlet -w 1 --bind 127.0.0.1:5000 app:system
 
 Copyright © 2026 Dhurjai Sharma. All Rights Reserved.
+I am exteremly sorry for the debug printing techniques and will try my best to remove them!
 👉 [View Technical Architecture & Security Protocols](./techdetails.md)
