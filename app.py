@@ -1,6 +1,7 @@
 from algorithm import *
 from blueprints import app_blueprints
 from system import *
+from groupedvid import *
 for x in app_blueprints:
     system.register_blueprint(x)
 db.init_app(system)
@@ -20,7 +21,6 @@ def before_cursor_execute(conn, cursor, statement, parameters, context, executem
         if "site-packages" not in frame.filename and "yt app" in frame.filename:
             # print(f" QUERY AT: {os.path.basename(frame.filename)} | LINE: {frame.lineno} | FUNC: {frame.name}")
             print(f"Executing SQL: {statement[:100]}...") # Print the start of the SQL
-            # print(f"SQL Snippet: {statement[:50]}...") 
             break
 @event.listens_for(db.session, 'before_flush')
 def strict_manual_eject_guard(db_session, flush_context, instances):
@@ -105,7 +105,6 @@ def injectn():
     g.tpath=os.path.join('static',thumbnailfolder)
     g.vpath=os.path.join('static',videofolder)
     g.logopath=os.path.join('static',photos)
-    
     g.ailimit=maxaiprompts
     if session.get("login"):
         userid=session.get('user_id')
@@ -129,7 +128,6 @@ def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    
     session.modified = True
     return response
 @system.route('/community')
@@ -150,7 +148,7 @@ def viewcommunity():
     .join(users, channels.user_id == users.id)
     .outerjoin(videos, channels.id == videos.channel_id) 
     .filter(
-        channels.user_id != userid,
+     channels.user_id != userid,
         channels.ischannelenabled == True,
         users.permanentdisabled == False
     )
@@ -170,7 +168,7 @@ def viewcommunity():
         desc('sub_count'),      
         desc('video_count'),
         channels.created.desc(),
-    )
+)
         .offset(offset_val)
         .limit(maxchannelsperpage + 1)
         .all()
@@ -231,7 +229,6 @@ def fetchchannel():
     if cou==len(num):
         return jsonify({"status": True}),200
     return jsonify({"status": False}),403
-
 def gennvids(offset_val):
     base_videos =(
     currentdb.query(
@@ -254,7 +251,7 @@ def gennvids(offset_val):
         videos.view_count.desc(), 
         videos.created.desc()
     )
-    .limit(maxvideoperpage)
+    .limit(maxvideoperpage+1)
     .offset(offset_val)
     
     .options(
@@ -269,13 +266,17 @@ def index():
     page = request.args.get('page', request.form.get('page', 1, type=int), type=int)
     offset_val = (page - 1) * maxvideoperpage
     vids=None     
+    onlyquery=False
+    grpdata=None    
+    g.tpath=os.path.join('static',thumbnailfolder)
     if request.method=="POST":
         video_title = request.form.get('query').strip() if request.form.get('query')  else None
         channel_ids = request.form.get('channel_ids').strip() if request.form.get('channel_ids') else  None
         sort_by = request.form.get('sort_by')
         ordered = request.form.get('order')
-        vcategory = request.form.get('category')
+        vcategory = request.form.get('category').lower().strip()
         onlywatchedvideos=request.form.get('watchedvidesonly')
+        onlyquery=request.form.get('onlyquery',False)
         num=[int(channel_id.strip()) for channel_id in channel_ids.split() if channel_id.strip() ]if channel_ids else []
         cou = (
     currentdb.query(channels)
@@ -297,7 +298,7 @@ def index():
 )
         query = query.filter(users.permanentdisabled == False,channels.ischannelenabled == True)
         conditions = []
-        if num:
+        if num and not onlyquery:
             conditions.append(videos.channel_id.in_(num))
         numd=" ".join([str(x) for x in num])
         g.dataobj = SimpleNamespace(
@@ -308,6 +309,7 @@ def index():
                 category=vcategory or None,
                 onlywatchedvideos=onlywatchedvideos or None
             ) 
+        
         userid=session.get('user_id') or session.get('temptoken')
         query = (
     currentdb.query(
@@ -323,15 +325,15 @@ def index():
         videos.display == True
     )
 )
-        if g.dataobj and g.dataobj.onlywatchedvideos:
+        if g.dataobj and g.dataobj.onlywatchedvideos and not onlyquery:
             query = query.join(views, videos.id == views.video_id).filter(views.token == str(userid),views.show==True)
-        if conditions:
+        if conditions and not onlyquery:
             query = query.filter(or_(*conditions))
         if video_title:
             query = query.filter(videos.name.ilike(f"%{video_title}%"))
-        if vcategory and vcategory != "all":
+        if vcategory and vcategory != "all" and not onlyquery:
             query = query.filter(videos.category.ilike(f"%{vcategory}%"))
-        if sort_by in ['likes', 'views']:
+        if sort_by in ['likes', 'views'] and not onlyquery:
             query = query.options(contains_eager(videos.parent_channel).contains_eager(channels.owner))
             sort_target = videos.like_count if sort_by == 'likes' else videos.view_count
         else:
@@ -340,7 +342,7 @@ def index():
             query = query.outerjoin(likes, videos.id == likes.video_id)
             query = query.outerjoin(views, videos.id == views.video_id)
             query = query.group_by(videos.id, channels.id, users.id)
-            sort_target = getattr(videos, sort_by)
+            sort_target = getattr(videos, sort_by) 
 
         direction = desc if ordered == 'desc' else asc
         vids = (
@@ -348,16 +350,19 @@ def index():
         contains_eager(videos.parent_channel)
                 .contains_eager(channels.owner)
             )
-            .order_by(direction(sort_target))
+            .order_by(direction(sort_target) if not onlyquery else videos.like_count.desc(),videos.view_count.desc())
         .limit(maxvideoperpage + 1)
     .offset(offset_val)
              .all()
         )
-        flash("Filtering using criteria...",info)
         has_next = False
         if len(vids) > maxvideoperpage:
             has_next = True
             vids.pop()    
+        if onlyquery:
+            grpdata=grpvids(vids)
+
+        flash("Filtering using criteria...",info) if not onlyquery else None
     else:
         if getattr(g, 'user', None):
             vids=None
@@ -376,7 +381,7 @@ def index():
             if len(vids) > maxvideoperpage:
                 has_next = True
                 vids.pop()       
-    return render_template('index.html',mostsearched=mostsearched,vids=vids,page=page,per_page=maxvideoperpage,has_next=has_next)
+    return render_template('index.html',onlyquery=onlyquery,grpdata=grpdata,mostsearched=mostsearched,vids=vids,page=page,per_page=maxvideoperpage,has_next=has_next)
 @system.route('/profile/<int:userid>')
 def viewprofile(userid):
     userobj=getuserobj(userid)
@@ -457,10 +462,11 @@ if __name__=="__main__":
         scheduler.add_job(id='cleanfiles', func=cleanup_allfiles, trigger='interval', seconds=3600, max_instances=1, coalesce=True)
         scheduler.add_job(id="syncowrkforai", func=sync_counts, trigger="interval", minutes=10, max_instances=1, coalesce=True)
         scheduler.add_job(id="clearveything", func=clear_all_data, trigger="interval", minutes=1440,  max_instances=1,coalesce=True)
+        scheduler.add_job(id="updaterecommendation" ,func=updaterec,trigger="interval", minutes=30,  max_instances=1,coalesce=True)
         scheduler.init_app(system)
         threading.Thread(target=auto_purge_scheduler, daemon=True).start()        
         scheduler.start()
-        actasks.clear()
+        acchats.clear()
         
         # db.drop_all()
         # db.create_all() 

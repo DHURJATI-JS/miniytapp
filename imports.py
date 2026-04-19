@@ -174,7 +174,7 @@ def getallvideosofachannel(channelid,offset):
 def checkifsubscribed(userid,channelid):
     tru=currentdb.query(
                             subscribers.query.filter_by(
-                                user_id=userid if checkifuserexists(userid) else None, 
+                                user_id=userid , 
                                 channel_id=channelid
                             ).exists()
                         ).scalar() 
@@ -182,13 +182,13 @@ def checkifsubscribed(userid,channelid):
 def checkiflikedvideo(userid,videoid):
     li=currentdb.query(
                             likes.query.filter_by(
-                                user_id=userid if checkifuserexists(userid) else None, 
+                                user_id=userid , 
                                 video_id=videoid
                             ).exists()
                         ).scalar()
     return li
 def getsubscribedobj(userid,channelid):
-    obj=subscribers.query.filter_by(user_id=userid if checkifuserexists(userid) else None, channel_id=channelid).first()
+    obj=subscribers.query.filter_by(user_id=userid, channel_id=channelid).first()
     return obj
 
 def getvideobyid(videoid):
@@ -252,6 +252,7 @@ def processavedemails():
     valid_users = users.query.filter(users.email.in_(raw_emails)).filter(users.permanentdisabled==False).all()
     valid_emails = [u.email for u in valid_users]
     if len(valid_emails) != len(raw_emails):
+            flash(f"{len(raw_emails)-len(valid_emails)} emails have been removed!",info)
             session['remembered_emails'] = valid_emails
             session.modified = True  
 def cleanup_allfiles():
@@ -313,8 +314,7 @@ def deluserdata(userobj):
             if cachedvid.get(str(video.id)):del cachedvid[(str(video.id))]
             vtt_paths.append(f"{p}.vtt")
     for playlist in userobj.playlists:
-        print('in platylists')
-        print(f"This is playlist:  {playlist.thumbnail}" )
+     
         if playlist.thumbnail: banner_paths.append(playlist.thumbnail)
     try:
         currentdb.delete(userobj)
@@ -475,23 +475,21 @@ def admin_only(basefx):
 def dontallowiflogged(base_fx):
     @wraps(base_fx)
     def e(*a,**b):
-        if loggedin():
-            processlogin()
+        if session.get('user_id'):
+            
             return redirect(url_for('index'))
         return base_fx(*a,**b)    
     return e            
 def requireduserlogin(base_fx):
     @wraps(base_fx)
     def echancedbase(*args,**kwargs):
-        if not loggedin():
+        if not session.get('user_id'):
             return redirect(url_for('authbp.login'))
-        processlogin()
+        
         return base_fx(*args,**kwargs)
     return echancedbase            
 def global_rate_limit_key():
-    if loggedin():
-        return session.get("user_id") 
-    return get_remote_address()
+    return session.get("user_id") or get_remote_address()
 limiter = Limiter(
     global_rate_limit_key, 
     app=system,enabled=os.getenv("STRESS_TEST") != "true",
@@ -501,24 +499,29 @@ limiter = Limiter(
 )
 def syncviews(videobj):
         viewno = (
-    currentdb.query(func.count(views.id))
+    currentdb.query(func.count(1))
     .filter(views.video_id == videobj.id)
     .scalar()
 )
-        print("herereeeeee inv iews")        
         if not videobj.view_count==viewno:
                 videobj.view_count = viewno
                 try:
                     currentdb.commit()
-                    print("views updated")    
                 except Exception as e:
                     currentdb.rollback()
                     print("something went worn uring sync")
 def synclikes(videobj):
-        actual_likes = (currentdb.query(func.count(likes.id))
-                           .join(users, likes.user_id == users.id)
-                           .filter(likes.video_id == videobj.id, users.permanentdisabled == False)
-                           .scalar())      
+        actual_likes = (
+    currentdb.query(func.count(1))
+    .filter(
+        likes.video_id == videobj.id,
+        exists().where(
+            (users.id == likes.user_id) & 
+            (users.permanentdisabled == False)
+        )
+    )
+    .scalar()
+)   
         if not videobj.like_count==actual_likes:
                 videobj.like_count = actual_likes
                 try:
@@ -529,10 +532,17 @@ def synclikes(videobj):
                     print("something went worn uring sync")
 def syncsubs(channelobj):
     print("synscing usbs")
-    actual_subs = (currentdb.query(func.count(subscribers.id))
-                          .join(users, subscribers.user_id == users.id)
-                          .filter(subscribers.channel_id == channelobj.id, users.permanentdisabled == False)
-                          .scalar())
+    actual_subs =(
+    currentdb.query(func.count(1)) 
+    .filter(
+        subscribers.channel_id == channelobj.id,
+        exists()
+        .where(users.id == subscribers.user_id)
+        .where(users.permanentdisabled == False)
+    )
+    .scalar()
+)
+
     if not channelobj.sub_count == actual_subs:
                 channelobj.sub_count = actual_subs
                 try:
@@ -545,13 +555,22 @@ def sync_counts():
     with system.app_context():
         all_videos = videos.query.all()
         for video in all_videos:
-            actual_likes = (currentdb.query(func.count(likes.id))
-                           .join(users, likes.user_id == users.id)
-                           .filter(likes.video_id == video.id, users.permanentdisabled == False)
-                           .scalar())
-            viewss = (currentdb.query(func.count(views.id))
-                           .filter(views.video_id == video.id)
-                           .scalar())            
+            actual_likes = (
+    currentdb.query(func.count(1))
+    .filter(
+        likes.video_id == video.id,
+        exists().where(
+            (users.id == likes.user_id) & 
+            (users.permanentdisabled == False)
+        )
+    )
+    .scalar()
+)
+            viewss =(
+    currentdb.query(func.count(1))
+    .filter(views.video_id == video.id)
+    .scalar()
+)          
             if not video.like_count == actual_likes or not videos.view_count==viewss:
                 video.like_count = actual_likes
                 video.view_count = viewss
@@ -595,14 +614,18 @@ def check_resources(threshold, cache_seconds=2):
             pass 
     last_check_time = current_time
     cached_result = result
-    print("resutllltlltltltltlltltltltl")
     return result
 def is_ollama_online():
     try:
         client.list()  
-        if not check_resources(90.0):
-            return False
+        # if not check_resources(99.0):
+        #     return False
         return True
     except Exception as e:
         return False            
-    
+def is_email(s):
+    try:
+        validate_email(s)
+        return True
+    except EmailNotValidError:
+        return False

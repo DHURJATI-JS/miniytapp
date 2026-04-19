@@ -61,7 +61,10 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import HTTPException
 from flask_executor import Executor
 import logging
+from collections import Counter
+from operator import attrgetter
 from werkzeug.datastructures import MultiDict
+from email_validator import validate_email, EmailNotValidError
 WhisperModellocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),"models","whisper-turbo")
 innerdomain="localhost"
 ollamaserver=f'http://{innerdomain}:11434'
@@ -74,6 +77,7 @@ domainname=productiondomain if productionmode else  localdomain
 allowed_origins=[domainname , localdomain]
 system=Flask(__name__)
 system.secret_key = str(uuid.uuid4())
+system.config['SESSION_REFRESH_EACH_REQUEST'] = True
 system.config['SESSION_TYPE'] = 'redis'
 system.config['SESSION_REDIS'] = redis.from_url(storage+"0")
 system.config['EXECUTOR_MAX_WORKERS'] = 1
@@ -133,8 +137,9 @@ Talisman(
 maxrecommenedvideo=50
 defaultadminpassword="admin"
 maxaiprompts=10
-maxvideoperpage=30
+maxvideoperpage=12
 maxchannelsperpage=30
+randomizer=True
 maxplaylistsperpage=10
 maxreportsperpage=500
 maxchannels=10
@@ -150,6 +155,7 @@ client = ollama.Client(host=ollamaserver,timeout=10.0)
 if processpower<maxvideoperpage or processpower<maxchannelsperpage or processpower<maxrecommenedvideo:
     raise("Increase processing power!")
 appname="YT"
+#dont remove anything
 category = [
     "Humour",
     "Music", "Gaming", "Programming", "Artificial Intelligence", 
@@ -168,13 +174,13 @@ category = [
     "Education", "History", "Science & Space", "Photography", 
     "Automotive", "Sports", "Self-Improvement"
 ]
-mostsearched=["Search for how to make a cake...",
-    "Search for how to learn Python...",
-    "Search for how to use minicpm...",
-    "Search for coordinate geometry..."]
-category=[x.lower() for x in category ]
+mostsearched = [f"Search for {line.strip()}..." for line in open("recommend.txt") if line.strip()]
+def updaterec():
+    mostsearched[:] = [f"Search for {line.strip()}..." for line in open("recommend.txt") if line.strip()]
+
+category[:]=[x.lower() for x in category ]
 myemail="dhurjatisharma2010@gmail.com"
-myemailkey="Removed for now"
+myemailkey="nifn azve dngv sibi"
 def get_video_duration(file_path):
     clip = VideoFileClip(file_path)
     duration = clip.duration  
@@ -192,19 +198,19 @@ def purge_executor_queue():
 cdata = Database.from_url(storage)
 try:
     if cdata.ping():
-        print("✅ REDIS CONNECTED: Walrus is ready for the Kill Switch.")
+        print("✅ REDIS CONNECTED.")
 except Exception as e:
-    print(f"❌ REDIS ERROR: Could not connect. Is the server running? {e}")
+    print(f"❌ REDIS ERROR: Could not connect. {e}")
 active_tasks=cdata.Hash('active_tasks') 
 request_count={}
-actasks={}
+acchats={}
 alrimproved={}
 cachedvid=cdata.Hash('cachedvid')
 clear_all_data = lambda: [
     active_tasks.clear(),   
     cachedvid.clear(),      
     request_count.clear(),  
-    actasks.clear(),        
+    acchats.clear(),        
     alrimproved.clear()     
 ]
 def createtaskai(basefx):
@@ -214,7 +220,6 @@ def createtaskai(basefx):
         if has_request_context() and request.method=="POST":
             l = str(uuid.uuid4())
             active_tasks[uid] = json.dumps((l, True, time.time()))
-            print("created a new task for user")
             b['aitoken'] = l
         return basefx(*a, **b)
     return _e    
