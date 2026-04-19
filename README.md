@@ -12,6 +12,14 @@ CRITICAL: This software is NOT open-source for unauthorized commercial or privat
 🧠 AI Multimodal Pipeline
 
 The system utilizes a multi-stage inference engine to "see" and "hear" video content:
+ YT Mini: AI Multimodal Video Intelligence System
+
+YT Mini is a high-integrity, multimodal AI application designed for automated video summarization and architectural durability. Built on a production-mirror environment of Arch Linux, it leverages state-of-the-art LLMs and neural captioning to transform video content into structured intelligence.
+
+
+🧠 AI Multimodal Pipeline
+
+The system utilizes a multi-stage inference engine to "see" and "hear" video content:
     The process queue is handled by Flask executor and each user is alloted a 60second timeout window 
     Visual Extraction: Custom logic captures 07 key frames per video to provide visual context.
     Multimodal LLM: Ollama (Micicpm-v) processes Base64 encoded frames for secure image-to-text transmission.
@@ -45,7 +53,7 @@ During Phase 2 (Extreme Saturation) at 783.90 req/s, a 19.81% failure rate was r
 
     OS: Arch Linux
 
-    CPU: Intel i5-12400F
+    CPU: Intel i5-12400F 
 
     RAM: 32GB DDR4
 
@@ -67,6 +75,10 @@ After receiving permission, the stack can be launched via the production protoco
     ./system/bin/python -m gunicorn -k eventlet -w 1 --bind 127.0.0.1:5000 app:system
 
 Copyright © 2026 Dhurjati Sharma. All Rights Reserved.
-*I am exteremly sorry for the debug printing techniques and some words and will try my best to remove them!
-
+Notice: Licensing & Collaboration
+This project is currently proprietary. If you'd like to clone, deploy, or use this codebase for your own work, please reach out for permission first. I’m happy to discuss access or licensing!
+Contact:
+    Developer: Dhurjati Sharma
+    Email: dhurjatisharma2010@gmail.com
+    
 👉 [View Technical Architecture & Security Protocols](./techdetails.md)
