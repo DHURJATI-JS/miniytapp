@@ -13,7 +13,7 @@ def viewchannel(id):
         cenable=request.form.get('cenable')
         e=getsinglechannelobjbyid(id)   
         if e:
-            if not e.owner.id==session.get('user_id'):
+            if not e.user_id==session.get('user_id'):
                 flash("You cannot edit someone else's channel",error)
                 return redirect(url_for(".viewchannel",id=id))
             if len(name)<10 or len(name)>50 or len(desc)>500 or len(desc)<10:
@@ -182,7 +182,7 @@ def unsubchannel(id):
             try:             
                 currentdb.delete(obj)
                 currentdb.commit()
-                addnotification(userid,f"Unsubscribed from: {targetchannelname}","Unsubscribe channel")
+                addnotification(userid,f"unsubscribed from: {targetchannelname}","Unsubscribe channel")
                 flash(f"unsubscribed from {targetchannelname}",success)
             except Unauthorized:
                     raise                  

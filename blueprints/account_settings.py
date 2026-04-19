@@ -18,7 +18,7 @@ def settings():
             cdata=request.form.get('cdata')
             pphoto=None
             pphoto=request.files.get('profile_photo')
-            if len(newname)<10 or len(newname)>50 or len(newemail)<3 or len(newemail)>100 :
+            if len(newname)<10 or len(newname)>50 or len(newemail)<3 or len(newemail)>100 or not is_email(newemail):
                 flash("Invalid input data",error)
                 return redirect(url_for('.settings')) 
             if check_password_hash(userbj.password,currentpass):

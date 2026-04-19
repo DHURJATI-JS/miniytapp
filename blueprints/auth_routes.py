@@ -281,7 +281,7 @@ def register():
         if not channelname:
             channelname=name
         password=request.form.get('password') or ''
-        if len(name)<10 or len(name)>50 or len(email)<3 or len(email)>100 or len(password)<10 or len(password)>100:
+        if len(name)<10 or len(name)>50 or len(email)<3 or len(email)>100 or len(password)<10 or len(password)>100 or not is_email(email):
             flash("Invalid input data" if not len(password)>100 else "Enter shorter password",error)
             return redirect(url_for('.register'))
         if channeldesc and len(channeldesc)<10 or len(channeldesc)>500:

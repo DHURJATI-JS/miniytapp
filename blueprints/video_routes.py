@@ -95,7 +95,7 @@ def execute_chat_task(sid,vid,oldprompt,prompt,lastprompt,itime):
         try:
             for bits in ai_chat(oldprompt,getvideobyid(vid),prompt,lastprompt):
                 if sid not in request_count or not is_ollama_online() or not request_count.get(sid,0) <maxaiprompts:
-                        if actasks.get(sid):del actasks[sid]    
+                        if acchats.get(sid):del acchats[sid]    
                         eventlet.sleep(1)
                         socketio.emit("chat_chunk", {
                         "text": generr,
@@ -112,10 +112,10 @@ def execute_chat_task(sid,vid,oldprompt,prompt,lastprompt,itime):
                     socketio.emit("chat_chunk", {
                         "done": True
                     },to=sid)
-                    if actasks.get(sid):del actasks[sid]    
+                    if acchats.get(sid):del acchats[sid]    
                     break
         except Exception as e:
-            if actasks.get(sid): del actasks[sid]
+            if acchats.get(sid): del acchats[sid]
             log_event(f"AI Stream Crash: {e}",time.time())
             socketio.emit("chat_chunk", {
                 "done": True, 
@@ -124,15 +124,15 @@ def execute_chat_task(sid,vid,oldprompt,prompt,lastprompt,itime):
             return False  
 def processio(p):
         loggedin(True)
-        delsession()   
+        delsession()
+        session.modified = True   
         socketio.emit('force_logout', to=f"user_{p}") 
         socketio.sleep(0.1)  
-        delsession()
         disconnect()                    
 @socketio.on("connect")
 def connio():
     p=session.get('user_id') or 0
-    if not returnnondisableduserobj(p):
+    if not p:
         processio(p)
         return False 
     request_count[request.sid]=0    
@@ -141,7 +141,7 @@ def connio():
 def gimprove(data):
     reqid = request.sid
     p=session.get('user_id') or 0
-    if not returnnondisableduserobj(p):
+    if not p:
         processio(p)
         return False 
     key = global_rate_limit_key()
@@ -167,7 +167,7 @@ def processdata(data):
     prompt=data['prompt']
     reqid = request.sid
     p=session.get('user_id') or 0
-    if not returnnondisableduserobj(p):
+    if not p:
         processio(p)
         return False    
     key = global_rate_limit_key()
@@ -186,7 +186,7 @@ def processdata(data):
              {"msg":"Something went wrong Kindly <a href='?reload=true'>refresh</a> the page"}
             ,to=reqid)
         return False
-    isactive=actasks.get(reqid)
+    isactive=acchats.get(reqid)
     sid = reqid
     count = request_count.get(sid, 0)
     request_count[sid]=count + 1
@@ -204,14 +204,14 @@ def processdata(data):
         return False
     oldprompt=data['analyzeddata'] 
     lastprompt=data['lastprompt']
-    actasks[reqid]=True
+    acchats[reqid]=True
     # print("here nknfdnfndjf")
     executor.submit(execute_chat_task, reqid, int(data['vidid']),oldprompt,prompt,lastprompt,time.time() )
 @socketio.on('disconnect')
 def handle_disconnect():
     user_id = session.get('user_id')
     if request_count.get(request.sid):del request_count[request.sid]
-    if actasks.get(request.sid):del actasks[request.sid]
+    if acchats.get(request.sid):del acchats[request.sid]
     if alrimproved.get(request.sid):del alrimproved[request.sid]
     if user_id:
         leave_room(f"user_{user_id}")            
@@ -263,9 +263,7 @@ def viewvid(id):
 )
     v_count, l_count, obj = thivid
     userid=session.get('user_id')
-    user_has_commented = currentdb.query(
-    db.exists().where(comments.video_id == id).where(comments.user_id == userid)
-    ).scalar()
+    user_has_commented = any(c.user_id == userid for c in obj.comments)
     g.channel=channels.query.filter_by(user_id=userid).first()    
     if obj.display and obj.parent_channel.ischannelenabled:
         plist=(
