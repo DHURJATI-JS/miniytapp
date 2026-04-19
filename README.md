@@ -61,13 +61,10 @@ After receiving permission, the stack can be launched via the production protoco
     ./system/bin/python -m gunicorn -k eventlet -w 1 --bind 127.0.0.1:5000 app:system
 
 Copyright © 2026 Dhurjati Sharma. All Rights Reserved.
-*I am exteremly sorry for the debug printing techniques and some words and will try my best to remove them!
-
-⚠️ Mandatory Permission & Contact Protocol
-
-CRITICAL: This software is NOT open-source for unauthorized commercial or private redistribution.
-    Authorization Required: You MUST contact the author and receive explicit written consent before cloning, deploying, or utilizing this codebase in any production or public environment.
-    Contact: Please reach out to the developer to discuss licensing or access.
-        Developer Email: dhurjatisharma2010@gmail.com (Referenced in system integrity report and system variable {{g.myemail}})
-        Subject Line: Security Inquiry: Studio v2 Access Request
+Notice: Licensing & Collaboration
+This project is currently proprietary. If you'd like to clone, deploy, or use this codebase for your own work, please reach out for permission first. I’m happy to discuss access or licensing!
+Contact:
+    Developer: Dhurjati Sharma
+    Email: dhurjatisharma2010@gmail.com
+    
 👉 [View Technical Architecture & Security Protocols](./techdetails.md)
