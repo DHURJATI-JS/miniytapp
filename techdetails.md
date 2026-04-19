@@ -14,7 +14,7 @@ The system employs a high-speed defensive layer against malicious actors:
 🚀 Caching & Resource Optimization
 
 To prevent redundant AI inference costs (Whisper/Ollama), the system uses a Lazy-Loading Cache Strategy:
-    The Content Hash: Every processed video generates a unique hash based on its metadata. If a user requests a video that has been summarized before, the system serves the cached JSON summary from PostgreSQL/Redis instead of re-running the AI pipeline.
+    The Content Hash: Every processed video generates a unique hash based on its metadata. If a user requests a video that has been summarized before, the system serves the cached JSON summary from Redis instead of re-running the AI pipeline.
     Automated Cache Invalidation: Upon updating or deleting the video the cached is cleared instantly. In case of a peamnent user delete and channel delete it takes a time of 1 day to clear the cache.
     Cold Storage: Cached video data is refreshed or verified every 1 day to ensure visual/textual alignment.
 
