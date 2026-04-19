@@ -241,6 +241,7 @@ function executeSubmission() {
         const targetForm = document.getElementById('paginationForm');
         
         if (bridge) bridge.value = searchInput.value;
+        document.getElementById("onlyquery").value ="true";
         targetForm.submit();
     }
 }
@@ -250,7 +251,68 @@ searchInput.onkeypress = (e) => { if(e.key === 'Enter') executeSubmission(); };
 
 typeAnimation();
 </script>
-{% if vids %}
+
+
+{% if onlyquery %}
+ <div class="container mt-5">
+  {% if grpdata %}
+    
+  
+    {% set grpvid, ungrouped = grpdata %}
+    {% for ele in grpvid %}
+        {% set chan = grpvid[ele]['channelobj'] %}
+        
+        <div class="channel-result-container" style="display: flex; flex-direction: column; gap: 10px; padding: 25px; border: 1px solid #e0e0e0; border-radius: 15px; margin-bottom: 25px; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+            
+            <div class="channel-card" style="display: flex; align-items: center; gap: 24px; padding: 10px 0;">
+                <div class="channel-avatar">
+                    <img src="{{ url_for('static', filename='profilephotos/' + (chan.channelicon or 'def.svg')) }}" 
+                         alt="Avatar" 
+                         style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 1px solid #f0f0f0;">
+                </div>
+                
+                <div class="channel-details" style="flex: 1;">
+                    <h3 style="margin: 0; font-size: 1.25rem; color: #0f0f0f; font-weight: 600;">{{ chan.channelname }}</h3>
+                    <p style="margin: 2px 0; color: #606060; font-size: 0.9rem;">
+                        {{ grpvid[ele]['sub_count']|compact }} subscribers
+                    </p>
+                    <p style="margin: 8px 0; color: #606060; font-size: 0.85rem; max-width: 650px; line-height: 1.4;">
+                        {{ chan.channeldesc[:140] }}...
+                    </p>
+                    
+                    <a href="{{ url_for('channelbp.viewchannel', id=chan.id) }}" 
+                       class="btn btn-primary btn-rounded shadow-0 ripple" 
+                       style="background-color: #065fd4; text-transform: none; padding: 8px 20px; font-weight: 500; border-radius: 20px;">
+                        View Channel
+                    </a>
+                </div>
+            </div>
+
+            <div class="channel-videos-list" style="display: flex; flex-direction: column; margin-left: 40px;">
+                <div class="container-fluid"> <div class="row">
+                        {% for v_count, l_count, video_obj in grpvid[ele]['allvideos'] %}
+                            {% if video_obj.parent_channel.user_id == session.get('user_id') %}
+                                {{ sb(v_count, l_count, video_obj, g.tpath, False, True) }}
+                            {% else %}
+                                {{ sb(v_count, l_count, video_obj, g.tpath, False) }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+     <div class="row">
+  {% for v_count, l_count, video_obj in ungrouped %}
+  {% if video_obj.parent_channel.user_id==session.get('user_id') %}
+  {{ sb( v_count, l_count, video_obj, g.tpath,False,True)}}
+  {% else %}
+  {{ sb( v_count, l_count, video_obj, g.tpath,False)}}
+  {% endif %}
+  
+  {% endfor %}</div>{% endif %}
+</div>
+{% elif vids and not onlyquery %}
 
 
       <div class="container mt-5">
@@ -263,9 +325,7 @@ typeAnimation();
   {% endif %}
   
   {% endfor %}
-  </div>
-</div>
-
+ 
 {% else %}
  <div class="alert alert-info alert-dismissible fade show shadow-0 border-0 border-start border-4 border-{{category if category != 'message' else 'primary'}} px-4 py-3 mb-3" role="alert" style="background-color: #f8f9fa; border-radius: 10px;">
                 <div class="d-flex align-items-center">
@@ -274,7 +334,7 @@ typeAnimation();
                 </div>
             </div>
 {% endif %}
-{% if vids %}
+{% if vids or grpdata %}
     <div class="d-flex justify-content-center mt-5 mb-5">
    {% if page > 2 %}
              <a href="{{ url_for('index', page=1) }}" class="btn btn-outline-primary rounded-pill me-3">

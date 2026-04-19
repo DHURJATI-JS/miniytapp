@@ -233,8 +233,8 @@
                         <div class="fw-bold small mb-2"><span id="viewivid">{{ v_count }}</span>  views &bull; {{ vid.created.strftime('%b %d, %Y') if vid.created.strftime else vid.created  }} 
                             <form action="/" method="post">
                                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <input type="hidden" name="category" value="{{ vid.category }}"/>
-                                <input type="hidden" name="sort_by" value="created"/>
+                                <input type="hidden" name="category" value="{{ vid.category.lower().strip() }}"/>
+                                <input type="hidden" name="sort_by" value="likes"/>
                                 <input type="hidden" name="order" value="desc"/>
 
                <button class="btn btn-rounded btn-outine-light my-2" type="submit">{{vid.category}}</button>  
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <div class="comments-section mb-5 px-3 py-4">
     <h5 class="fw-bold mb-4 d-flex align-items-center">
-        Comments<span class="badge  badge-primary ms-2 rounded-pill" id="commentcounter" style="font-size: 0.7rem;"></span>
+        Comments<span class="badge badge-primary ms-2 rounded-pill" id="commentcounter" style="font-size: 0.7rem;"></span>
     </h5>
 
     {% set jj = vid.comments|length %}
@@ -416,18 +416,18 @@ document.addEventListener('DOMContentLoaded', () => {
         {% if not comment.owner.permanentdisabled %}
             {% set ns.value = ns.value + 1 %}                       
             <div  data-date="{{ comment.created.isoformat() }}" 
-                 data-me="{% if session.get('login') and g.user.id == comment.owner.id %}1{% else %}0{% endif %}" 
+                 data-me="{% if session.get('login') and g.user.id == comment.user_id %}1{% else %}0{% endif %}" 
                  class="comment-item counthisocmment d-flex mb-3 p-3 rounded-4">
                 
-                <a href="{{url_for('viewprofile', userid=comment.owner.id)}}">
+                <a href="{{url_for('viewprofile', userid=comment.user_id)}}">
                     <img src="/{{g.logopath}}/{{comment.owner.profilephoto}}" 
-                         class="rounded-circle dhurjati me-3 border shadow-sm" 
+                         class="rounded-circle me-3 border shadow-sm" 
                          style="width: 40px; height: 40px; object-fit: cover; background: #fff;">
                 </a>
 
                 <div class="flex-grow-1">
                     <div class="d-flex align-items-center mb-1">
-                        <a href="{{url_for('viewprofile',userid=comment.owner.id)}}" class="text-dark text-decoration-none">
+                        <a href="{{url_for('viewprofile',userid=comment.user_id)}}" class="text-dark text-decoration-none">
                             <h6 class="fw-bold small mb-0 me-2">@{{ comment.owner.name }}</h6>
                         </a>
                         <span class="tiny-date">{{ comment.created.strftime('%b %d, %Y') if comment.created.strftime else comment.created }}</span>
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             {% set unrealreplies = active_replies|selectattr('owner.permanentdisabled', 'equalto', false) | list %}
                             
-                            {% if g.user and g.user.id == comment.owner.id %}
+                            {% if g.user and g.user.id == comment.user_id %}
                                 <form action="{{ url_for('videobp.delcomment', id=comment.id) }}" method="POST" class="m-0">
                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-link p-0 text-danger fw-bold small text-decoration-none" style="font-size: 0.75rem;">
@@ -456,8 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </form>
                             {% endif %}
 
-                            {% if session.get('login') and not g.user.id == comment.owner.id %}
-                                <button type="button" onclick="location.href='{{url_for('reportbp.report',id=comment.owner.id)}}'" class="btn btn-link p-0 text-muted fw-bold small text-decoration-none" style="font-size: 0.75rem;">
+                            {% if session.get('login') and not g.user.id == comment.user_id %}
+                                <button type="button" onclick="location.href='{{url_for('reportbp.report',id=comment.user_id)}}'" class="btn btn-link p-0 text-muted fw-bold small text-decoration-none" style="font-size: 0.75rem;">
                                     <i class="fas fa-flag me-1"></i> Report
                                 </button>
                             {% endif %}
@@ -485,14 +485,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="collapse ms-2 ps-3" id="replies-{{comment.id}}">
                             {% for reply in unrealreplies %}
                             <div class="d-flex mt-3 reply-item">
-                                <a href="{{url_for('viewprofile',userid=reply.owner.id)}}"> 
+                                <a href="{{url_for('viewprofile',userid=reply.user_id)}}"> 
                                     <img src="/{{g.logopath}}/{{reply.owner.profilephoto}}" 
                                          class="rounded-circle me-2 border shadow-sm" 
                                          style="width: 30px; height: 30px; object-fit: cover; background: #fff;">
                                 </a>
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center">
-                                        <a class="text-dark text-decoration-none" href="{{url_for('viewprofile', userid=reply.owner.id)}}">
+                                        <a class="text-dark text-decoration-none" href="{{url_for('viewprofile', userid=reply.user_id)}}">
                                             <h6 class="fw-bold mb-0 me-2" style="font-size: 0.75rem;">@{{ reply.owner.name }}</h6>
                                         </a> 
                                         <span class="tiny-date">{{ reply.created.strftime('%b %d') }}</span>
@@ -500,14 +500,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <p class="small mb-1 text-dark text-break" style="opacity: 0.8;">{{ reply.content }}</p>
                                     
                                     <div class="d-flex gap-2">
-                                        {% if session.get('login') and g.user.id == reply.owner.id %}
+                                        {% if session.get('login') and g.user.id == reply.user_id %}
                                         <form action="{{ url_for('videobp.removeinnercomment', id=reply.id) }}" method="POST" class="m-0">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button type="submit" class="jeetbtn btn-link p-0 text-danger fw-bold" style="font-size: 0.65rem; text-decoration: none;">Delete</button>
+                                            <button type="submit" class="btn btn-link p-0 text-danger fw-bold" style="font-size: 0.65rem; text-decoration: none;">Delete</button>
                                         </form>
                                         {% endif %}
-                                        {% if session.get('login') and not g.user.id == reply.owner.id %}
-                                        <button onclick="location.href='{{url_for('reportbp.report',id=reply.owner.id)}}'" class="btn btn-link p-0 text-muted fw-bold" style="font-size: 0.65rem; text-decoration: none;">Report</button>
+                                        {% if session.get('login') and not g.user.id == reply.user_id %}
+                                        <button onclick="location.href='{{url_for('reportbp.report',id=reply.user_id)}}'" class="btn btn-link p-0 text-muted fw-bold" style="font-size: 0.65rem; text-decoration: none;">Report</button>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
                                 {% endif %}
-
+ 
         {% endfor %}
 
         {% if not ns.value %}
@@ -688,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                 <div class="flex-grow-1" style="min-width: 0;">
                                     <a href="{{url_for('playlistbp.viewthatplaylist',id=p.id)}}"><h6 class="fw-bold mb-1 text-truncate">{{ p.name }}</h6>
-                                    <p class="text-muted mb-0 jeet small text-truncate">{{ p.description or 'No description' }}</p></a>
+                                    <p class="text-muted mb-0 small text-truncate">{{ p.description or 'No description' }}</p></a>
                                 </div> {% if p not in alr_add %}
 
                                 <button  type="button" 
@@ -834,7 +834,7 @@ document.querySelectorAll('.select-playlist-btn').forEach(btn => {
                         <div class="nova-category-tag">
                             {{ thatvid.category }}
                         </div>
-
+                      
                         <a href="{{ url_for('videobp.viewvid', id=thatvid.id) }}?show_playlist=true" class="nova-save-action">
                             <i class="fas fa-plus"></i>
                         </a>
@@ -847,7 +847,11 @@ document.querySelectorAll('.select-playlist-btn').forEach(btn => {
         </a>
         <button class="btn btn-link btn-floating btn-sm text-muted p-0 ms-2" data-mdb-modal-init data-mdb-target="#sharevid{{thatvid.id}}">
             <i class="fas fa-share-alt"></i>
-        </button>
+        </button>{% if session.get('user_id') and thatvid.parent_channel.user_id==session.get('user_id') %}
+                          <a href="{{ url_for('videobp.editvid', id=thatvid.id) }}"  class="btn btn-link btn-floating btn-sm text-muted p-0 ms-2">
+                            <i class="fas fa-pen"></i> 
+                        </a>  
+                        {% endif %}
     </div>
     
     <div class="nova-meta text-muted">
@@ -863,7 +867,7 @@ document.querySelectorAll('.select-playlist-btn').forEach(btn => {
         
         <p class="nova-desc nova-desc-truncate mt-1">{{ thatvid.description }}</p>
         
-        <small class="d-block mt-1 opacity-75">{{ thatvid.created.strftime('%b %d, %Y') }}</small>
+        <small class="d-block mt-1 opacity-75">{{ thatvid.created.strftime('%b %d, %Y') }}</small>  
     </div>
 </div>
                 </div>

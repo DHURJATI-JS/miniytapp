@@ -142,17 +142,18 @@
     <div class="card video-card h-100 shadow-0">
         <div class="thumb-wrapper">
             <a href="/view_video/{{o.id}}">
-                <img src="/{{thumbnailpath}}/{{o.thumbnail}}" alt="{{o.name}}" onerror="this.src='https://placehold.co/600x400/000000/FFFFFF?text=Preview+Unavailable';" loading="lazy"/>
+                <img src="/{{thumbnailpath}}/{{o.thumbnail}}" alt="{{o.name}}"loading="lazy"/>
             </a> 
             <span class="category-badge text-uppercase fw-bold">{{o.category}}</span>
             <span class="duration-badge text-uppercase mx-2 fw-bold">{{o.duration|filtertime}}</span>
         </div>
 
         <div class="card-body p-3 d-flex flex-column">
+            <a href="/view_video/{{o.id}}">
             <h5 class="card-title vid-title fw-bold  text-truncate" title="{{o.name}}">
                 {{o.name}}
             </h5>
-            
+            </a>
             {% if not me %}
                 <a href="/channel/{{o.parent_channel.id}}" class="channel-link mb-2 d-block text-truncate" style="max-width: 180px;">
                     <i class="fas fa-check-circle me-1 small text-primary"></i> @{{o.parent_channel.channelname}}

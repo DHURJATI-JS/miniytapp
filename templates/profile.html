@@ -50,6 +50,11 @@
             <button class="btn btn-white btn-rounded shadow-0 border mt-2 fw-bold" onclick="location.href='{{url_for('channelbp.createchannel')}}'">
                 <i class="fas fa-plus-circle me-2 text-primary"></i>Create Channel
             </button>
+            {% else %}
+              <button  onclick="window.open('mailto:{{user.email}}', '_blank');
+" class="btn btn-white btn-rounded shadow-0 border mt-2 fw-bold">
+                <i class="fa-solid fa-envelope"></i> Contact user
+              </button>
         {% endif %}
 <button class="btn btn-white btn-rounded shadow-0 border mt-2 fw-bold" 
 

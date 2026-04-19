@@ -144,7 +144,7 @@
                              class="rounded-circle me-2 border" width="40" height="40" style="object-fit: cover;">
                         <div>
                             <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Curated by</small>
-                            <span class="fw-bold text-dark">{{ g.playlist.owner.name }} {% if g.user and g.user.id == session.get('user_id') %}
+                            <span class="fw-bold text-dark">{{ g.playlist.owner.name }} {% if g.user and g.playlist.user_id == session.get('user_id') %}
                 <span class="badge rounded-pill bg-primary ms-2" style="font-size: 0.8rem; vertical-align: middle;">YOU</span>
             {% endif %}</span>
                            
