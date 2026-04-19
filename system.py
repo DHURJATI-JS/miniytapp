@@ -180,7 +180,8 @@ def updaterec():
 
 category[:]=[x.lower() for x in category ]
 myemail="dhurjatisharma2010@gmail.com"
-myemailkey="nifn azve dngv sibi"
+#add key
+myemailkey=""
 def get_video_duration(file_path):
     clip = VideoFileClip(file_path)
     duration = clip.duration  
