@@ -134,7 +134,7 @@ def generateuserprefferedcategoryvids(userid, offset, community_sorting=False, s
                     elif cs > 10: rank -= 30
                     rank *= cs**-2 if cs > 1 else -30
                     if cs < 10 and len(chan_cats) > 1: rank -= 30
-                    if vid_count > 10 and cs < 20: rank -= 30
+                    if vid_count>10 and cs< 20: rank -= 30
                     break
             return (rank, -cs)
         all_channels.sort(key=get_channel_rank)
@@ -159,9 +159,9 @@ def generateuserprefferedcategoryvids(userid, offset, community_sorting=False, s
         vid_id = v_data[4]
         global_boost = 0
         if v_data[0] > (totalviewssavg * 4): global_boost = 20
-        elif v_data[0] > (totalviewssavg * 2): global_boost = 10
+        elif v_data[0]> (totalviewssavg * 2): global_boost = 10
         if v_data[3] > v_data[0]:
-            calc[vid_id] = (v_data[3] > v_data[0] * 0.5) + global_boost
+            calc[vid_id] = (v_data[3] >v_data[0] * 0.5)+ global_boost
             continue
         name = v_data[1]
         age_hours = (now - v_data[2]).total_seconds() / 3600
@@ -192,8 +192,8 @@ def generateuserprefferedcategoryvids(userid, offset, community_sorting=False, s
         sc = scategory.lower()
         matching = [v for v in final_sorted_vids if v[2].category.lower() == sc]
         non_matching = [v for v in final_sorted_vids if v[2].category.lower() != sc]
-        final_sorted_vids = matching[:3] + non_matching +matching[3:]
+        final_sorted_vids=matching[:3]+non_matching+matching[3:]
         return final_sorted_vids[:maxrecommenedvideo]
-    start_idx = min(offset, len(final_sorted_vids))
-    end_idx = start_idx + maxvideoperpage + 1
+    start_idx = min(offset,len(final_sorted_vids))
+    end_idx = start_idx+maxvideoperpage+ 1
     return final_sorted_vids[start_idx:end_idx]
