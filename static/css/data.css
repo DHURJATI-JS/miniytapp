@@ -1,0 +1,385 @@
+.hiz{
+    display: none;
+}
+.pd-20{
+  padding: 20px;
+}
+.h-50{
+  max-height: 50%;
+}
+.ml-2{
+  margin-left: 20px;
+}
+.d-none{
+  display: none!important;
+}
+.fixed-bottom {
+    pointer-events: none; 
+}
+
+.fixed-bottom .container, 
+.fixed-bottom button, 
+.fixed-bottom a {
+    pointer-events: auto; 
+}
+button{
+  font-weight: 700 !important;
+    box-shadow: 10px !important;
+}
+a.btn{
+    font-weight: 700 !important;
+  box-shadow: 10px  !important;
+}
+body .alert {
+    text-transform: lowercase !important;
+}
+
+body .alert::first-letter {
+    text-transform: uppercase !important;
+}
+
+.d-none{
+  display: none !important;
+}
+
+.notification-suite .notif-time {
+    font-size: 0.65rem;       /* Very small and clean */
+    text-transform: uppercase; /* Professional look */
+    color: #b0b0b0;           /* Lighter grey so it looks 'cleaner' */
+    font-weight: 600;         /* Slightly bold so it's readable at small size */
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: auto;        /* Pinned to the right */
+    display: flex;
+    align-items: center;
+}
+
+/* Make the clock icon even smaller than the text */
+.notification-suite .notif-time i {
+    font-size: 0.6rem;
+    margin-right: 4px;
+    opacity: 0.7;
+}.notification-suite .modal-content { 
+    border-radius: 18px; 
+    border: none; 
+    overflow: hidden; 
+    max-width: 100%; /* Ensure it doesn't grow larger than screen */
+}
+
+/* Fix for the Notification Item Container */
+.notification-suite .notif-item { 
+    border-left: 4px solid transparent; 
+    transition: 0.2s; 
+    cursor: default;
+    display: flex; /* Ensure it uses flex */
+    min-width: 0;   /* CRITICAL: Allows children to shrink and truncate */
+}
+
+/* Fix for the Icon: Prevent it from squishing */
+.notification-suite .notif-icon { 
+    width: 40px; 
+    height: 40px; 
+    flex-shrink: 0; /* CRITICAL: Stops the number/icon from becoming tiny */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 10px; 
+    background: #eee; 
+    color: #757575;
+    margin-right: 1rem;
+}
+
+/* Fix for the Text Content: Force Truncation */
+.notification-suite .notif-item p {
+    margin-bottom: 0;
+    color: #757575;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    
+    /* TRUNCATION LOGIC */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;    /* Show only 2 lines, then add '...' */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Fix for Title: Prevent wrapping and add dots */
+.notification-suite .notif-item h6 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.video-item {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Glass effect for the search-minus background */
+.bg-light {
+    background-color: rgba(0,0,0,0.03) !important;
+    border: 1px dashed #dee2e6;
+}
+    .search-glass-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        padding: 4px 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .search-glass-wrapper:focus-within {
+        background: #fff;
+        border-color: #3b71ca;
+        box-shadow: 0 8px 25px rgba(59, 113, 202, 0.15);
+        transform: translateY(-1px);
+    }
+    .studio-input {
+        border: none;
+        background: transparent;
+        width: 100%;
+        padding: 12px 10px;
+        outline: none;
+        font-weight: 500;
+        color: #333;
+    }
+    .search-icon-left { color: #999; margin-right: 5px; }
+    .btn-clear { border: none; background: none; color: #999; cursor: pointer; }
+    .animate__fadeIn {
+    animation: fadeIn 0.4s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.video-item {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.bg-light {
+    background-color: rgba(0,0,0,0.03) !important;
+    border: 1px dashed #dee2e6;
+}
+/* Fixed Spacing & Centering */
+  .floating-studio-nav {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 50px !important;
+    width: 95%;
+    max-width: 1100px;
+    padding: 0.5rem 1rem !important;
+  }
+
+  /* Text Color Persistence */
+  .studio-link {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #444 !important;
+    padding: 0.6rem 1.2rem !important;
+    border-radius: 30px;
+  }
+
+  .active-studio, .active-studio:hover, .active-studio:focus {
+    background: #000 !important;
+    color: #fff !important; /* Force white text */
+  }
+
+  .active-studio i { color: #fff !important; }
+
+  /* MDB Ripple Correction for Dark Bg */
+  .active-studio .ripple-surface {
+    --mdb-ripple-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Dropdown Fixes */
+  .studio-dropdown {
+    border-radius: 18px !important;
+    overflow: hidden;
+    padding: 0.5rem;
+  }
+
+  .dropdown-item {
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-studio-pill {
+    border-radius: 50px !important;
+    font-weight: 700;
+    text-transform: none;
+    box-shadow: none !important;
+  }
+
+
+
+
+  /* Fix for MDB dropdown appearing behind elements */
+  .dropdown-menu {
+    transform: translateY(10px) !important;
+  }
+  .floating-studio-nav {
+    z-index: 1030 !important;
+    /* ... your other styles ... */
+  }
+
+  /* Ensure the dropdown menu itself is still high enough to be seen over body text */
+  .studio-dropdown {
+    z-index: 1040 !important;
+    border-radius: 18px !important;
+    overflow: hidden;
+    padding: 0.5rem;
+  }
+  
+  /* Fix: If a modal is open, ensure the sticky wrapper doesn't eat the click events */
+  .modal-open .container-fluid[style*="sticky"] {
+    z-index: 1040 !important;
+  }
+  .studio-search-glass {
+    background: white !important;
+    backdrop-filter: blur(15px);
+    border-radius: 24px !important;
+  }
+  .private-label { 
+        font-size: 0.7rem; font-weight: 800; text-transform: uppercase; 
+        color: #f93154; background: rgba(249, 49, 84, 0.1); 
+        padding: 4px 10px; border-radius: 50px; 
+    }  
+input[type="email"] {
+  text-transform: lowercase;
+}  /* Icon Container */
+  .studio-search-icon-box {
+    width: 38px;
+    height: 38px;
+    background: #eef2f7;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  /* Input Groupings */
+  .studio-search-input-group, .studio-search-select-box {
+    background: #f4f6f9;
+    padding: 8px 16px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .studio-search-input-group:focus-within {
+    border-color: #ced4da;
+    background: #fff;
+  }
+
+  /* Label Styling */
+  .studio-search-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #8898aa;
+    margin-bottom: 2px;
+  }
+
+  /* Form Elements */
+  .studio-search-control, .studio-search-select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #32325d;
+    outline: none;
+  }
+
+  /* Toggle Card */
+  .studio-search-toggle-card {
+    background: #f4f6f9;
+    padding: 12px 16px;
+    border-radius: 14px;
+    display: flex;
+  }
+
+  .tiny-text {
+    font-size: 0.7rem;
+  }
+
+  /* Buttons */
+  .studio-search-btn-flat {
+    background: transparent;
+    color: #525f7f;
+    font-weight: 700;
+    text-transform: none;
+    border: none;
+  }
+
+  .studio-search-btn-primary {
+    background: #111;
+    border-radius: 50px;
+    font-weight: 700;
+    text-transform: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .studio-search-switch:checked {
+    background-color: #000;
+    border-color: #000;
+  }
+.share-icon-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none !important;
+    color: #4f4f4f;
+    width: 65px;
+    transition: transform 0.2s ease;
+}
+
+.share-icon-wrapper:hover { transform: translateY(-3px); }
+
+.share-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.share-icon-wrapper span { font-size: 0.75rem; font-weight: 600; }
+
+/* Brand Colors */
+.bg-whatsapp { background-color: #25d366; }
+.bg-x { background-color: #000000; }
+.bg-facebook { background-color: #1877f2; }
+.bg-reddit { background-color: #ff4500; }
+
+.share-copy-box {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 6px 6px 6px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.share-link-input {
+    background: transparent;
+    border: none;
+    font-size: 0.85rem;
+    color: #757575;
+    width: 100%;
+    outline: none;
+}  
